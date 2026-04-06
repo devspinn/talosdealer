@@ -4,15 +4,49 @@ import Home from '@/pages/Home'
 import Inventory from '@/pages/Inventory'
 import UnitDetail from '@/pages/UnitDetail'
 import Contact from '@/pages/Contact'
+import Login from '@/pages/Login'
+import Signup from '@/pages/Signup'
 import DealerDirectory from '@/pages/DealerDirectory'
 import { DealerBasePathProvider } from '@/DealerContext'
-import { dealers } from '@/data/dealers'
+import { useDealerSite } from '@/hooks/use-api'
 
 function DealerSite() {
   const { slug } = useParams<{ slug: string }>()
-  const data = slug ? dealers[slug] : undefined
+  const { data, loading, error } = useDealerSite(slug)
 
-  if (!data) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col animate-pulse">
+        {/* Header skeleton */}
+        <div className="sticky top-0 z-50 bg-primary shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16 sm:h-20">
+              <div className="h-8 w-40 bg-white/10 rounded" />
+              <div className="hidden md:flex items-center gap-8">
+                <div className="h-4 w-14 bg-white/10 rounded" />
+                <div className="h-4 w-20 bg-white/10 rounded" />
+                <div className="h-4 w-16 bg-white/10 rounded" />
+              </div>
+              <div className="hidden sm:block h-9 w-36 bg-white/10 rounded-lg" />
+            </div>
+          </div>
+        </div>
+        {/* Hero skeleton */}
+        <div className="bg-gray-200 h-72 sm:h-96" />
+        {/* Content skeleton */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-gray-100 rounded-xl h-72" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !data) {
     return <Navigate to="/" replace />
   }
 
@@ -40,6 +74,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<DealerDirectory />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
       <Route path="/:slug/*" element={<DealerSite />} />
     </Routes>
   )

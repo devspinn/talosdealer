@@ -1,20 +1,47 @@
 import { Link } from 'react-router-dom'
-import { MapPin, ArrowRight, Bike, Anchor } from 'lucide-react'
-import { dealerList } from '@/data/dealers'
+import { MapPin, ArrowRight, Bike, Anchor, LogOut } from 'lucide-react'
+import { authClient } from '@/lib/auth-client'
+import { useDealers } from '@/hooks/use-api'
 
 export default function DealerDirectory() {
+  const { data: session } = authClient.useSession()
+  const { data: dealerList, loading, error } = useDealers()
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 sm:h-20">
-            <span className="text-xl font-bold text-white tracking-tight">
-              RoostDealer
-            </span>
-            <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-semibold bg-accent/20 text-accent uppercase tracking-wider">
-              Demo
-            </span>
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            <div className="flex items-center">
+              <span className="text-xl font-bold text-white tracking-tight">
+                RoostDealer
+              </span>
+              <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-semibold bg-accent/20 text-accent uppercase tracking-wider">
+                Demo
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {session?.user ? (
+                <>
+                  <span className="text-sm text-white/80">{session.user.name}</span>
+                  <button
+                    onClick={() => authClient.signOut()}
+                    className="flex items-center gap-1 text-sm text-white/60 hover:text-white transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+                >
+                  Sign in
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -35,7 +62,31 @@ export default function DealerDirectory() {
       {/* Dealer Cards */}
       <section className="-mt-10 pb-20 flex-1">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 animate-pulse"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 rounded-xl bg-gray-200 shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div className="h-5 bg-gray-200 rounded w-3/4" />
+                      <div className="h-3 bg-gray-100 rounded w-1/2" />
+                      <div className="h-3 bg-gray-100 rounded w-2/3" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-red-400">Failed to load dealers</p>
+            </div>
+          )}
+          {dealerList && <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {dealerList.map((dealer) => {
               const icon = /marine|boat/i.test(dealer.name) ? (
                 <Anchor className="h-8 w-8 text-primary" />
@@ -75,7 +126,7 @@ export default function DealerDirectory() {
                 </Link>
               )
             })}
-          </div>
+          </div>}
         </div>
       </section>
 

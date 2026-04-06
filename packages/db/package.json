@@ -1,0 +1,29 @@
+{
+  "name": "@roostdealer/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "push": "drizzle-kit push",
+    "studio": "drizzle-kit studio",
+    "seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.0",
+    "dotenv": "^17.4.1",
+    "drizzle-orm": ">=0.41.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

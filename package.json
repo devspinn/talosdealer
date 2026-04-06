@@ -3,7 +3,13 @@
   "private": true,
   "scripts": {
     "scrape": "pnpm --filter @roostdealer/scraper run scrape",
-    "dev": "pnpm --filter @roostdealer/web run dev",
-    "build": "pnpm --filter @roostdealer/web run build"
+    "dev": "pnpm --filter @roostdealer/web --filter @roostdealer/api -r --parallel run dev",
+    "build": "pnpm --filter @roostdealer/web run build",
+    "api:dev": "pnpm --filter @roostdealer/api run dev",
+    "db:generate": "pnpm --filter @roostdealer/db run generate",
+    "db:migrate": "pnpm --filter @roostdealer/db run migrate",
+    "db:push": "pnpm --filter @roostdealer/db run push",
+    "db:studio": "pnpm --filter @roostdealer/db run studio",
+    "db:seed": "pnpm --filter @roostdealer/db run seed"
   }
 }

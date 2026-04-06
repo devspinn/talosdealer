@@ -4,9 +4,11 @@
 
 RoostDealer is a startup building an AI-native dealer website platform for powersports/marine/outdoor equipment dealerships. We're replacing DealerSpike (the incumbent legacy CMS).
 
-The repo is a pnpm monorepo with two packages:
+The repo is a pnpm monorepo with four packages:
 - `packages/scraper` — CLI that crawls a dealer website, extracts inventory, and uses Claude to generate structured data + descriptions
 - `packages/web` — React + Vite demo site that renders inventory beautifully
+- `packages/db` — Drizzle ORM schema, Neon client, seed script, migrations
+- `packages/api` — Hono API server with BetterAuth (email/password)
 
 ## Tech decisions
 
@@ -53,11 +55,17 @@ pnpm dev                    # Run demo site at localhost:5173
 pnpm build                  # Build web for production
 pnpm scrape --url <URL>     # Full scrape + AI enrichment
 pnpm scrape --url <URL> --skip-enrich --max-listings 5  # Test crawling only
+pnpm api:dev                # Run Hono API server at localhost:3000
+pnpm db:push                # Push schema changes to Neon (dev workflow)
+pnpm db:generate            # Generate SQL migration from schema diff
+pnpm db:migrate             # Run pending migrations
+pnpm db:studio              # Open Drizzle Studio (visual DB browser)
+pnpm db:seed                # Seed demo dealers + inventory into DB
 ```
 
 ## Demo site data
 
-The demo runs multiple dealers via slug-based routing (`/:slug/*`). Demo data lives in `packages/web/src/data/`:
+The web app fetches dealer and inventory data from the API at runtime. Demo data JSON files live in `packages/web/src/data/` and are seeded into the DB via `pnpm db:seed`. The web app no longer imports these JSON files directly.
 
 | Dealer | Slug | Type | Units | Source |
 |---|---|---|---|---|
@@ -66,10 +74,10 @@ The demo runs multiple dealers via slug-based routing (`/:slug/*`). Demo data li
 | Portside Marine | `portside-marine` | Real (ARI DealerSpike) | 20 boats/trailers | `portside-marine.json` |
 | Toms River Marine | `toms-river-marine` | Real (classic DealerSpike) | 152 mixed marine+powersports | `toms-river-marine.json` |
 
-Registered in `packages/web/src/data/dealers.ts`. To add a new dealer:
+To add a new dealer:
 1. Scrape: `pnpm scrape --url <URL> --skip-enrich --output output/name-raw.json`
 2. Transform: add to `packages/scraper/transform-demo.mjs` and run `node transform-demo.mjs` (from `packages/scraper/`)
-3. Register: import the JSON in `dealers.ts` and add to the `dealers` record
+3. Place the JSON in `packages/web/src/data/`, add filename to `packages/db/src/seed.ts`, then `pnpm db:seed`
 
 The `DealerBasePathProvider` + `useDealerPath()` hook in `DealerContext.tsx` handles slug-prefixed routing across all components.
 
@@ -84,14 +92,33 @@ Always prefer setting `heroTitle`/`heroSubtitle` for demo dealers — the vibe f
 - No `python` in `.tool-versions` — use Node.js for any scripting/data inspection.
 - The scraper transform runs from `packages/scraper/` (`cd packages/scraper && node transform-demo.mjs`).
 
-## Architecture for Phase B (not built yet)
+## Backend (Phase B — in progress)
 
-When we add the backend it will be:
-- **Hono** for the API server
-- **Neon** (Postgres) for the database
-- **Drizzle** ORM for type-safe queries
-- **BetterAuth** for authentication (supports orgs/multi-tenant)
-- Multi-tenant via wildcard subdomains: `{slug}.roostdealer.com`
+- **Hono** API server (`packages/api`) at `:3000` with CORS for `:5173`
+- **Neon** Postgres 17, AWS us-east-1, project name `roostdealer`
+- **Drizzle** ORM — schema in `packages/db/src/schema/`, migrations in `packages/db/drizzle/`
+- **BetterAuth** — email/password auth, Drizzle adapter. Tables: `user`, `session`, `account`, `verification`
+- Multi-tenant via wildcard subdomains: `{slug}.roostdealer.com` (not wired yet)
+
+### DB/API gotchas
+- **Env loading**: The API uses `--env-file=../../.env` in the tsx/node command (not dotenv import) because ES module imports are hoisted — top-level `createDb()` calls in `auth.ts` run before any dotenv `config()` in `index.ts`. The db package uses `dotenv` in `drizzle.config.ts` and `seed.ts` since those are standalone scripts, not imported modules.
+- **Neon Auth vs BetterAuth**: Neon offers "Neon Auth" (managed BetterAuth wrapper) but its SDK targets Next.js. We use BetterAuth directly for Hono compatibility. Same underlying tech.
+- **Schema changes workflow**: Edit schema files in `packages/db/src/schema/`, then `pnpm db:push` for dev iteration or `pnpm db:generate` + `pnpm db:migrate` for tracked migrations.
+- **Seed is idempotent**: Uses `onConflictDoNothing` on dealer slug, so re-running won't duplicate. But units don't have a unique constraint beyond their UUID, so re-seeding after a full wipe is the safest path.
+- **Web fetches from API**: The web app fetches dealers and inventory from the Hono API at runtime via hooks in `packages/web/src/hooks/use-api.ts`. The Vite dev server proxies `/api` to `localhost:3000`. Both `pnpm dev` and `pnpm api:dev` must be running for the demo site to work.
+- **Types are duplicated**: `packages/web/src/types.ts` and `packages/scraper/src/types.ts` both define `Unit`/`DealerInfo`. `packages/db/src/index.ts` exports Drizzle-inferred `Dealer`/`Unit` types. The web and scraper should eventually import from `@roostdealer/db` instead.
+
+### API routes
+- `GET /api/dealers` — list all dealers
+- `GET /api/dealers/:slug` — single dealer
+- `GET /api/dealers/:slug/inventory` — units (filters: `?type=`, `?condition=`, `?make=`, `?search=`)
+- `GET /api/dealers/:slug/inventory/:id` — single unit
+- `/api/auth/*` — BetterAuth (sign-up, sign-in, session, etc.)
+
+### Not yet built
+- BetterAuth organization plugin (dealer = org, staff = members with roles)
+- Scraper writing directly to DB
+- Subdomain-based tenant resolution middleware
 
 ## Competitive context
 
