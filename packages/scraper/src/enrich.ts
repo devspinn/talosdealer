@@ -1,5 +1,5 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime'
-import type { RawListing, Unit, UnitType, Condition } from './types.js'
+import type { RawListing, Unit, UnitType, Condition, DealerInfo } from './types.js'
 
 const BATCH_SIZE = 5
 
@@ -307,4 +307,59 @@ function generateId(url: string): string {
     hash |= 0 // Convert to 32-bit integer
   }
   return `unit-${Math.abs(hash).toString(36)}`
+}
+
+/**
+ * Use AI to generate a compelling, dealer-specific hero title and subtitle.
+ */
+export async function enrichDealerHero(
+  dealer: DealerInfo,
+  units: Unit[],
+  onProgress?: (msg: string) => void,
+): Promise<{ heroTitle: string; heroSubtitle: string }> {
+  const log = onProgress ?? (() => {})
+  const client = createBedrockClient()
+  const model = getModel()
+
+  // Summarize inventory for the prompt
+  const typeCounts = new Map<string, number>()
+  const makes = new Set<string>()
+  for (const u of units) {
+    typeCounts.set(u.type, (typeCounts.get(u.type) || 0) + 1)
+    if (u.make !== 'Unknown') makes.add(u.make)
+  }
+  const inventorySummary = [...typeCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => `${count} ${type}${count > 1 ? 's' : ''}`)
+    .join(', ')
+  const brandList = [...makes].slice(0, 8).join(', ')
+
+  const prompt = `You are a marketing copywriter for a powersports/marine dealership website. Generate a hero section title and subtitle for this dealer's homepage.
+
+Dealer: ${dealer.name}
+Location: ${dealer.city ? `${dealer.city}, ${dealer.state}` : 'Unknown'}
+Inventory: ${units.length} units — ${inventorySummary}
+Top brands: ${brandList}
+
+Requirements:
+- heroTitle: A punchy, 4-8 word headline that captures the dealer's identity. Do NOT use generic phrases like "Starts Here" or "Your Adventure Awaits." Make it specific to what this dealer actually sells and where they are. Use power words that evoke the lifestyle.
+- heroSubtitle: 1-2 sentences (under 40 words) that expand on the title. Mention the dealer name, location, and the types of products they carry. Be specific, not generic.
+
+Respond with ONLY a JSON object, no markdown:
+{"heroTitle": "...", "heroSubtitle": "..."}`
+
+  log('Generating hero content with AI...')
+  const text = await callClaude(client, model, prompt, 256)
+
+  try {
+    const cleaned = text.replace(/^```(?:json)?\s*\n?/gm, '').replace(/\n?```\s*$/gm, '').trim()
+    const parsed = JSON.parse(cleaned)
+    return {
+      heroTitle: String(parsed.heroTitle || ''),
+      heroSubtitle: String(parsed.heroSubtitle || ''),
+    }
+  } catch {
+    log('Warning: Failed to parse hero content, using defaults')
+    return { heroTitle: '', heroSubtitle: '' }
+  }
 }

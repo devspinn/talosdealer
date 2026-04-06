@@ -190,10 +190,7 @@ function extractDealerInfo(html: string, sourceUrl: string): DealerInfo {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 
-  const logo = resolveUrl(
-    $('header .logo img, .site-logo img, [class*="logo"] img, .navbar-brand img').first().attr('src'),
-    origin,
-  )
+  const logo = findDealerLogo($, origin)
 
   const phoneEl = $('a[href^="tel:"]').first()
   const phone = phoneEl.attr('href')?.replace('tel:', '').trim() || phoneEl.text().trim() || findPhone($)
@@ -222,6 +219,24 @@ function extractDealerInfo(html: string, sourceUrl: string): DealerInfo {
     heroImage: heroImage || undefined,
     sourceUrl,
   }
+}
+
+/** Find the actual dealer logo, skipping platform/template logos. */
+function findDealerLogo($: cheerio.CheerioAPI, origin: string): string | undefined {
+  const candidates = $(
+    'header .logo img, .site-logo img, [class*="logo"] img, .navbar-brand img, header img[src*="logo"]',
+  )
+
+  for (let i = 0; i < candidates.length; i++) {
+    const src = resolveUrl($(candidates[i]).attr('src'), origin)
+    if (!src) continue
+    // Skip generic DealerSpike/platform template logos
+    if (/dealerspike\.com\/imglib\/template/i.test(src)) continue
+    if (/powered.?by|template\/v\d/i.test(src)) continue
+    return src
+  }
+
+  return undefined
 }
 
 function findPhone($: cheerio.CheerioAPI): string | null {

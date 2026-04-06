@@ -49,6 +49,8 @@ export interface DealerInfo {
   zip?: string
   hours?: string
   heroImage?: string
+  heroTitle?: string
+  heroSubtitle?: string
   sourceUrl: string
 }
 

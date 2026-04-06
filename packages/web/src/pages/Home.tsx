@@ -131,11 +131,16 @@ export default function Home({ dealer, units }: HomeProps) {
               </span>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight drop-shadow-lg">
-              Your <span className="text-accent">{content.heroHighlight}</span>{" "}
-              Starts Here
+              {dealer.heroTitle || (
+                <>
+                  Your{" "}
+                  <span className="text-accent">{content.heroHighlight}</span>{" "}
+                  Starts Here
+                </>
+              )}
             </h1>
             <p className="mt-5 text-lg sm:text-xl text-white/80 max-w-xl leading-relaxed">
-              {content.heroSub(dealer.name, dealer.city)}
+              {dealer.heroSubtitle || content.heroSub(dealer.name, dealer.city)}
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
               <Link

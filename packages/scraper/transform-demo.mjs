@@ -249,3 +249,54 @@ console.log(`Portside: ${portsideUnits.length} units written`)
 console.log('  Boats:', portsideUnits.filter(u => u.type === 'boat').length)
 console.log('  Trailers:', portsideUnits.filter(u => u.type === 'trailer').length)
 console.log('  Unique makes:', [...new Set(portsideUnits.map(u => u.make))].join(', '))
+
+
+// === Toms River Marine and Motorsports (Classic DealerSpike) ===
+
+const tomsriverRaw = JSON.parse(readFileSync('output/tomsriver-raw.json', 'utf-8'))
+
+const tomsriverUnits = tomsriverRaw.units.map((u, i) => {
+  const params = parseUrlParamsClassic(u.url || '')
+  const type = params?.vtype ? (VTYPE_MAP[params.vtype] || 'other') : 'other'
+  return {
+    id: params?.oid || `tomsriver-${i}`,
+    year: params?.year || null,
+    make: params?.make || 'Unknown',
+    model: params?.model || u.model,
+    type,
+    condition: (params?.condition === 'new' || params?.condition === 'used') ? params.condition : 'new',
+    price: u.price || null,
+    specs: u.specs || {},
+    originalDescription: u.originalDescription,
+    aiDescription: `${params?.year || ''} ${params?.make || ''} ${params?.model || u.model} — available now at Toms River Marine and Motorsports. Contact us for pricing and availability.`,
+    photos: u.photos || [],
+    stockNumber: params?.stockno || u.stockNumber,
+    url: u.url,
+  }
+})
+
+const tomsriverOutput = {
+  dealer: {
+    name: 'Toms River Marine & Motorsports',
+    slug: 'toms-river-marine',
+    logo: tomsriverRaw.dealer.logo,
+    phone: '(732) 929-8168',
+    address: '3117 Route 37 East',
+    city: 'Toms River',
+    state: 'NJ',
+    zip: '08753',
+    heroTitle: 'From Open Water to Open Trail',
+    heroSubtitle: 'Toms River Marine & Motorsports is the Jersey Shore\'s home for boats, motorcycles, ATVs, and side-by-sides from Yamaha, Kawasaki, and more.',
+    heroImage: undefined,
+    sourceUrl: 'https://www.tomsrivermarineandmotorsports.com',
+  },
+  units: tomsriverUnits,
+}
+
+writeFileSync(
+  new URL('../web/src/data/toms-river-marine.json', import.meta.url),
+  JSON.stringify(tomsriverOutput, null, 2),
+)
+console.log(`Toms River: ${tomsriverUnits.length} units written`)
+console.log('  Types:', [...new Set(tomsriverUnits.map(u => u.type))].join(', '))
+console.log('  Makes:', [...new Set(tomsriverUnits.map(u => u.make))].join(', '))

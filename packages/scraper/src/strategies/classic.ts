@@ -33,7 +33,7 @@ export const classicStrategy: ScrapeStrategy = {
       }
     })
 
-    // Filter out subset pages (make=, vt=, etc.)
+    // Filter out subset pages (make=, vt=, category=, etc.)
     const prioritized = [...found].filter((u) => {
       const url = new URL(u)
       return !(
@@ -41,7 +41,8 @@ export const classicStrategy: ScrapeStrategy = {
         url.searchParams.has('vt') ||
         url.searchParams.has('vc') ||
         url.searchParams.has('ac') ||
-        url.searchParams.has('subcategory')
+        url.searchParams.has('subcategory') ||
+        url.searchParams.has('category')
       )
     })
 
@@ -50,7 +51,22 @@ export const classicStrategy: ScrapeStrategy = {
     // If we have an xAllInventory page, prefer it and skip xNew/xPreOwned (they're subsets)
     const allInv = urls.find((u) => /xAllInventory/i.test(u))
     if (allInv) {
-      return [allInv]
+      // Strip any leftover filter params to get the clean "all inventory" page
+      const clean = new URL(allInv)
+      for (const key of ['category', 'make', 'vt', 'vc', 'ac', 'subcategory']) {
+        clean.searchParams.delete(key)
+      }
+      return [clean.href]
+    }
+
+    // If no xAllInventory found but we have category-filtered URLs, construct clean xAllInventory
+    const categoryFiltered = [...found].find((u) => /xAllInventory/i.test(u))
+    if (categoryFiltered) {
+      const clean = new URL(categoryFiltered)
+      for (const key of ['category', 'make', 'vt', 'vc', 'ac', 'subcategory']) {
+        clean.searchParams.delete(key)
+      }
+      return [clean.href]
     }
 
     return urls.slice(0, 5)

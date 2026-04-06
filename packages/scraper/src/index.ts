@@ -2,7 +2,7 @@ import { Command } from 'commander'
 import { writeFile, mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { crawl } from './crawl.js'
-import { enrich } from './enrich.js'
+import { enrich, enrichDealerHero } from './enrich.js'
 import type { EnrichedData } from './types.js'
 
 const program = new Command()
@@ -76,6 +76,16 @@ program
       } else {
         console.log('\n[2/3] Enriching with AI...')
         const units = await enrich(listings, (msg) => console.log(`  ${msg}`))
+
+        // Generate AI hero content based on the enriched inventory
+        try {
+          const hero = await enrichDealerHero(scraped.dealer, units, (msg) => console.log(`  ${msg}`))
+          if (hero.heroTitle) scraped.dealer.heroTitle = hero.heroTitle
+          if (hero.heroSubtitle) scraped.dealer.heroSubtitle = hero.heroSubtitle
+        } catch (err) {
+          console.log(`  Warning: Hero generation failed: ${err instanceof Error ? err.message : String(err)}`)
+        }
+
         result = {
           dealer: scraped.dealer,
           units,
