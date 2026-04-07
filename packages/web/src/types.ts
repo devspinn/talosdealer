@@ -40,3 +40,24 @@ export interface EnrichedData {
   dealer: DealerInfo
   units: Unit[]
 }
+
+export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'closed'
+
+export interface Lead {
+  id: string
+  dealerId: string
+  unitId?: string | null
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string | null
+  interest?: string | null
+  message?: string | null
+  status: LeadStatus
+  source: string
+  createdAt: string
+  updatedAt: string
+  unitYear?: number | null
+  unitMake?: string | null
+  unitModel?: string | null
+}

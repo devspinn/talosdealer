@@ -6,9 +6,11 @@ import {
   FileText,
   ArrowLeftRight,
   Send,
+  CheckCircle,
 } from 'lucide-react'
 import { cn, formatPrice, formatCondition } from '@/lib/utils'
 import { useDealerPath } from '@/DealerContext'
+import { submitLead } from '@/lib/api'
 import type { Unit, DealerInfo } from '@/types'
 
 interface UnitDetailProps {
@@ -22,6 +24,14 @@ export default function UnitDetail({ units, dealer }: UnitDetailProps) {
   const unit = units.find((u) => u.id === id)
   const [activePhoto, setActivePhoto] = useState(0)
   const [showOriginal, setShowOriginal] = useState(false)
+  const [inquiryName, setInquiryName] = useState('')
+  const [inquiryPhone, setInquiryPhone] = useState('')
+  const [inquiryEmail, setInquiryEmail] = useState('')
+  const [inquiryMessage, setInquiryMessage] = useState('')
+  const [inquiryWebsite, setInquiryWebsite] = useState('') // honeypot
+  const [inquirySubmitting, setInquirySubmitting] = useState(false)
+  const [inquirySubmitted, setInquirySubmitted] = useState(false)
+  const [inquiryError, setInquiryError] = useState<string | null>(null)
 
   if (!unit) {
     return (
@@ -251,60 +261,125 @@ export default function UnitDetail({ units, dealer }: UnitDetailProps) {
               </div>
             </div>
 
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="John Smith"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="(406) 555-1234"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                  />
-                </div>
+            {inquirySubmitted ? (
+              <div className="text-center py-8">
+                <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  Inquiry Sent!
+                </h3>
+                <p className="text-gray-500 text-sm">
+                  We'll get back to you about this {unit.make} {unit.model} within one business day.
+                </p>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="john@example.com"
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Message
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder={`I'm interested in the ${title}. Please send me more information...`}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent resize-none"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold py-3 rounded-xl transition-colors text-sm"
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  setInquiryError(null)
+                  setInquirySubmitting(true)
+                  try {
+                    const parts = inquiryName.trim().split(/\s+/)
+                    const firstName = parts[0] || ''
+                    const lastName = parts.slice(1).join(' ') || '-'
+                    await submitLead(dealer.slug, {
+                      firstName,
+                      lastName,
+                      email: inquiryEmail,
+                      phone: inquiryPhone,
+                      message: inquiryMessage || `I'm interested in the ${title}. Please send me more information.`,
+                      unitId: unit.id,
+                      source: 'unit_inquiry',
+                      website: inquiryWebsite,
+                    })
+                    setInquirySubmitted(true)
+                  } catch (err: any) {
+                    setInquiryError(err.message || 'Something went wrong.')
+                  } finally {
+                    setInquirySubmitting(false)
+                  }
+                }}
+                className="space-y-4"
               >
-                <Send className="h-4 w-4" />
-                Send Inquiry
-              </button>
-            </form>
+                {/* Honeypot */}
+                <input
+                  type="text"
+                  name="website"
+                  value={inquiryWebsite}
+                  onChange={(e) => setInquiryWebsite(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  style={{ position: 'absolute', left: '-9999px', opacity: 0 }}
+                />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={inquiryName}
+                      onChange={(e) => setInquiryName(e.target.value)}
+                      placeholder="John Smith"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={inquiryPhone}
+                      onChange={(e) => setInquiryPhone(e.target.value)}
+                      placeholder="(406) 555-1234"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={inquiryEmail}
+                    onChange={(e) => setInquiryEmail(e.target.value)}
+                    placeholder="john@example.com"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Message
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={inquiryMessage}
+                    onChange={(e) => setInquiryMessage(e.target.value)}
+                    placeholder={`I'm interested in the ${title}. Please send me more information...`}
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent resize-none"
+                  />
+                </div>
+
+                {inquiryError && (
+                  <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                    {inquiryError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={inquirySubmitting}
+                  className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold py-3 rounded-xl transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="h-4 w-4" />
+                  {inquirySubmitting ? 'Sending...' : 'Send Inquiry'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

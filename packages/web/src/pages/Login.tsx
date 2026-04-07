@@ -1,14 +1,24 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { authClient } from '@/lib/auth-client'
 
 export default function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const { data: session, isPending: sessionPending } = authClient.useSession()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const redirect = searchParams.get('redirect') || '/dashboard'
+
+  // Redirect once session is confirmed (after sign-in or if already authenticated)
+  useEffect(() => {
+    if (!sessionPending && session) {
+      navigate(redirect, { replace: true })
+    }
+  }, [sessionPending, session, navigate, redirect])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -24,10 +34,8 @@ export default function Login() {
 
     if (authError) {
       setError(authError.message ?? 'Invalid email or password')
-      return
     }
-
-    navigate(searchParams.get('redirect') || '/dashboard')
+    // Navigation handled by useEffect when session updates
   }
 
   return (

@@ -1,11 +1,12 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { authClient } from '@/lib/auth-client'
-import { LayoutDashboard, Package, Settings, ExternalLink, LogOut, Anchor } from 'lucide-react'
+import { LayoutDashboard, Package, MessageSquare, Settings, ExternalLink, LogOut, Anchor } from 'lucide-react'
 import { useDashboardDealer } from '@/hooks/use-dashboard'
 import { useEffect } from 'react'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/dashboard/leads', icon: MessageSquare, label: 'Leads' },
   { to: '/dashboard/inventory', icon: Package, label: 'Inventory' },
   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ]

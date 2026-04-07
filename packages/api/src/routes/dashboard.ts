@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
-import { eq } from 'drizzle-orm'
-import { dealers, units, user } from '@roostdealer/db'
+import { eq, and, desc } from 'drizzle-orm'
+import { dealers, units, leads, user } from '@roostdealer/db'
 import type { AppEnv } from '../app'
 import { requireAuth } from '../middleware/auth'
+import { buildAdfXml } from '../lib/adf'
 
 const app = new Hono<AppEnv>()
 
@@ -191,6 +192,102 @@ app.delete('/inventory/:id', async (c) => {
 
   await db.delete(units).where(eq(units.id, id))
   return c.json({ success: true })
+})
+
+// --- Leads ---
+
+// GET /api/dashboard/leads — list dealer's leads
+app.get('/leads', async (c) => {
+  const db = c.get('db')
+  const currentUser = c.get('user')
+
+  if (!currentUser.dealerId) {
+    return c.json({ error: 'No dealer linked' }, 404)
+  }
+
+  const status = c.req.query('status')
+  const conditions = [eq(leads.dealerId, currentUser.dealerId)]
+  if (status) {
+    conditions.push(eq(leads.status, status as any))
+  }
+
+  const result = await db
+    .select({
+      id: leads.id,
+      dealerId: leads.dealerId,
+      unitId: leads.unitId,
+      firstName: leads.firstName,
+      lastName: leads.lastName,
+      email: leads.email,
+      phone: leads.phone,
+      interest: leads.interest,
+      message: leads.message,
+      status: leads.status,
+      source: leads.source,
+      metadata: leads.metadata,
+      createdAt: leads.createdAt,
+      updatedAt: leads.updatedAt,
+      unitYear: units.year,
+      unitMake: units.make,
+      unitModel: units.model,
+    })
+    .from(leads)
+    .leftJoin(units, eq(leads.unitId, units.id))
+    .where(and(...conditions))
+    .orderBy(desc(leads.createdAt))
+
+  return c.json({ leads: result })
+})
+
+// PUT /api/dashboard/leads/:id — update lead status
+app.put('/leads/:id', async (c) => {
+  const db = c.get('db')
+  const currentUser = c.get('user')
+  const id = c.req.param('id')
+
+  if (!currentUser.dealerId) {
+    return c.json({ error: 'No dealer linked' }, 404)
+  }
+
+  const [existing] = await db.select({ dealerId: leads.dealerId })
+    .from(leads).where(eq(leads.id, id))
+  if (!existing || existing.dealerId !== currentUser.dealerId) {
+    return c.json({ error: 'Lead not found' }, 404)
+  }
+
+  const body = await c.req.json()
+  const [updated] = await db.update(leads).set({
+    status: body.status,
+  }).where(eq(leads.id, id)).returning()
+
+  return c.json({ lead: updated })
+})
+
+// GET /api/dashboard/leads/:id/adf — export lead as ADF XML
+app.get('/leads/:id/adf', async (c) => {
+  const db = c.get('db')
+  const currentUser = c.get('user')
+  const id = c.req.param('id')
+
+  if (!currentUser.dealerId) {
+    return c.json({ error: 'No dealer linked' }, 404)
+  }
+
+  const [lead] = await db.select().from(leads).where(
+    and(eq(leads.id, id), eq(leads.dealerId, currentUser.dealerId))
+  )
+  if (!lead) return c.json({ error: 'Lead not found' }, 404)
+
+  const [dealer] = await db.select().from(dealers).where(eq(dealers.id, currentUser.dealerId))
+
+  let unit = null
+  if (lead.unitId) {
+    const [u] = await db.select().from(units).where(eq(units.id, lead.unitId))
+    unit = u ?? null
+  }
+
+  const xml = buildAdfXml({ lead, dealer, unit })
+  return c.text(xml, 200, { 'Content-Type': 'application/xml' })
 })
 
 export default app

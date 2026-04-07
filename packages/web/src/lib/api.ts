@@ -1,4 +1,4 @@
-import type { DealerInfo, Unit } from '@/types'
+import type { DealerInfo, Unit, Lead } from '@/types'
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
@@ -21,6 +21,20 @@ export async function fetchDealer(slug: string): Promise<DealerInfo> {
 /** Fetch all inventory for a dealer. */
 export async function fetchInventory(slug: string): Promise<Unit[]> {
   return fetchJson(`${API_BASE}/dealers/${slug}/inventory`)
+}
+
+/** Submit a lead for a dealer (public, no auth). */
+export async function submitLead(slug: string, data: Record<string, unknown>): Promise<{ lead: Lead }> {
+  const res = await fetch(`${API_BASE}/dealers/${slug}/leads`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error || `API error: ${res.status}`)
+  }
+  return res.json()
 }
 
 // --- Dashboard (authenticated) API ---
@@ -50,4 +64,10 @@ export const dashboard = {
   addUnit: (data: Record<string, unknown>) => mutate<{ unit: Unit }>(`${API_BASE}/dashboard/inventory`, 'POST', data),
   updateUnit: (id: string, data: Record<string, unknown>) => mutate<{ unit: Unit }>(`${API_BASE}/dashboard/inventory/${id}`, 'PUT', data),
   deleteUnit: (id: string) => mutate<{ success: boolean }>(`${API_BASE}/dashboard/inventory/${id}`, 'DELETE'),
+  getLeads: (status?: string) => fetchAuthed<{ leads: Lead[] }>(
+    `${API_BASE}/dashboard/leads${status ? `?status=${status}` : ''}`
+  ),
+  updateLead: (id: string, data: { status: string }) => mutate<{ lead: Lead }>(
+    `${API_BASE}/dashboard/leads/${id}`, 'PUT', data
+  ),
 }

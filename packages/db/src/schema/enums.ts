@@ -12,3 +12,10 @@ export const unitTypeEnum = pgEnum('unit_type', [
 ])
 
 export const conditionEnum = pgEnum('condition', ['new', 'used'])
+
+export const leadStatusEnum = pgEnum('lead_status', [
+  'new',
+  'contacted',
+  'qualified',
+  'closed',
+])

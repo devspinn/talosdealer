@@ -34,10 +34,13 @@ async function verifyPassword(hash: string, password: string): Promise<boolean> 
     256
   )
   const hashHex = [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, '0')).join('')
-  const a = new TextEncoder().encode(hashHex)
-  const b = new TextEncoder().encode(expectedHash)
-  if (a.length !== b.length) return false
-  return crypto.subtle.timingSafeEqual(a, b)
+  // Constant-time comparison that works in both Node.js and Workers
+  if (hashHex.length !== expectedHash.length) return false
+  let mismatch = 0
+  for (let i = 0; i < hashHex.length; i++) {
+    mismatch |= hashHex.charCodeAt(i) ^ expectedHash.charCodeAt(i)
+  }
+  return mismatch === 0
 }
 
 export function createAuth(env: Env) {

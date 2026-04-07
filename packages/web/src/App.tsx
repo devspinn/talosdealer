@@ -16,6 +16,7 @@ import DashboardSettings from '@/pages/dashboard/DashboardSettings'
 import DashboardInventory from '@/pages/dashboard/DashboardInventory'
 import DashboardInventoryNew from '@/pages/dashboard/DashboardInventoryNew'
 import DashboardInventoryEdit from '@/pages/dashboard/DashboardInventoryEdit'
+import DashboardLeads from '@/pages/dashboard/DashboardLeads'
 import { DealerBasePathProvider } from '@/DealerContext'
 import { useDealerSite } from '@/hooks/use-api'
 
@@ -90,6 +91,7 @@ function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardOverview />} />
+        <Route path="leads" element={<DashboardLeads />} />
         <Route path="settings" element={<DashboardSettings />} />
         <Route path="inventory" element={<DashboardInventory />} />
         <Route path="inventory/new" element={<DashboardInventoryNew />} />
