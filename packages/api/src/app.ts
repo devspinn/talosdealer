@@ -12,6 +12,7 @@ export type Env = {
   DATABASE_URL: string
   BETTER_AUTH_SECRET: string
   BETTER_AUTH_URL: string
+  RESEND_API_KEY: string
 }
 
 type Variables = {
@@ -47,6 +48,7 @@ export function createApp(getEnv?: () => Env) {
           'http://localhost:5173',
           'https://roostdealer.com',
           'https://www.roostdealer.com',
+          'https://staging.roostdealer.com',
           'https://roostdealer-web.pages.dev',
         ]
         return allowed.includes(origin) ? origin : ''

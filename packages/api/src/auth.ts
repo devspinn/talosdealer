@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { Resend } from 'resend'
 import { createDb } from '@roostdealer/db'
 import type { Env } from './app'
 
@@ -41,12 +42,22 @@ async function verifyPassword(hash: string, password: string): Promise<boolean> 
 
 export function createAuth(env: Env) {
   const db = createDb(env.DATABASE_URL)
+  const resend = new Resend(env.RESEND_API_KEY)
   return betterAuth({
     database: drizzleAdapter(db, { provider: 'pg' }),
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     emailAndPassword: {
       enabled: true,
+      resetPasswordTokenExpiresIn: 3600,
+      sendResetPassword: async ({ user, url }) => {
+        await resend.emails.send({
+          from: 'RoostDealer <noreply@roostdealer.com>',
+          to: user.email,
+          subject: 'Reset your password',
+          html: `<p>Hi ${user.name},</p><p>Click the link below to reset your password. This link expires in 1 hour.</p><p><a href="${url}">Reset password</a></p><p>If you didn't request this, you can safely ignore this email.</p>`,
+        })
+      },
       password: {
         hash: hashPassword,
         verify: ({ hash, password }) => verifyPassword(hash, password),
@@ -65,6 +76,7 @@ export function createAuth(env: Env) {
       'http://localhost:5173',
       'https://roostdealer.com',
       'https://www.roostdealer.com',
+      'https://staging.roostdealer.com',
       'https://roostdealer-web.pages.dev',
     ],
     advanced: {

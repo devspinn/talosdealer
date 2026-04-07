@@ -7,6 +7,8 @@ import UnitDetail from '@/pages/UnitDetail'
 import Contact from '@/pages/Contact'
 import Login from '@/pages/Login'
 import Signup from '@/pages/Signup'
+import ForgotPassword from '@/pages/ForgotPassword'
+import ResetPassword from '@/pages/ResetPassword'
 import DealerDirectory from '@/pages/DealerDirectory'
 import Marketing from '@/pages/Marketing'
 import DashboardOverview from '@/pages/dashboard/DashboardOverview'
@@ -84,6 +86,8 @@ function App() {
       <Route path="/demos" element={<DealerDirectory />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardOverview />} />
         <Route path="settings" element={<DashboardSettings />} />

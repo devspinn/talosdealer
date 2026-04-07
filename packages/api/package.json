@@ -16,7 +16,8 @@
     "@roostdealer/db": "workspace:*",
     "better-auth": "^1.2.0",
     "drizzle-orm": ">=0.41.0",
-    "hono": "^4.7.0"
+    "hono": "^4.7.0",
+    "resend": "^6.10.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
