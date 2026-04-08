@@ -146,7 +146,7 @@ export default function DashboardLeads() {
                           value={lead.status}
                           onChange={(e) => handleStatusChange(lead, e.target.value)}
                           className={cn(
-                            'px-2.5 py-1 rounded-full text-xs font-semibold border-0 cursor-pointer',
+                            'pl-2 py-1 rounded-full text-xs font-semibold border-0 border-r-8 border-transparent cursor-pointer',
                             STATUS_COLORS[lead.status]
                           )}
                         >
