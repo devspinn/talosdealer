@@ -1,4 +1,4 @@
-import type { DealerInfo, Unit, Lead } from '@/types'
+import type { DealerInfo, Unit, Lead, Testimonial } from '@/types'
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
@@ -29,6 +29,25 @@ export async function submitLead(slug: string, data: Record<string, unknown>): P
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error || `API error: ${res.status}`)
+  }
+  return res.json()
+}
+
+/** Fetch testimonials for a dealer. */
+export async function fetchTestimonials(slug: string): Promise<Testimonial[]> {
+  return fetchJson(`${API_BASE}/dealers/${slug}/testimonials`)
+}
+
+/** Subscribe to a dealer's newsletter. */
+export async function subscribeNewsletter(slug: string, email: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_BASE}/dealers/${slug}/newsletter`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
   })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))

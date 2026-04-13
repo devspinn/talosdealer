@@ -6,8 +6,9 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: resolve(__dirname, '../../../.env') })
 
+import { eq } from 'drizzle-orm'
 import { createDb } from './client'
-import { dealers, units } from './schema'
+import { dealers, units, testimonials } from './schema'
 
 interface DealerJson {
   dealer: {
@@ -113,6 +114,58 @@ async function seed() {
     }
 
     console.log(`  Done: ${data.units.length} units inserted`)
+  }
+
+  // --- Seed testimonials for Sarasota Powersports ---
+  const [sarasota] = await db
+    .select({ id: dealers.id })
+    .from(dealers)
+    .where(eq(dealers.slug, 'sarasota-powersports'))
+
+  if (sarasota) {
+    // Clear existing testimonials to avoid duplicates on re-run
+    await db.delete(testimonials).where(eq(testimonials.dealerId, sarasota.id))
+
+    const fakeTestimonials = [
+      {
+        dealerId: sarasota.id,
+        reviewerName: 'Mike R.',
+        rating: 5,
+        text: 'Bought a 2024 Yamaha WaveRunner from these guys and the whole process was seamless. No pressure sales, fair trade-in value on my old ski, and they had me on the water the same weekend.',
+        source: 'Google',
+      },
+      {
+        dealerId: sarasota.id,
+        reviewerName: 'Jessica T.',
+        rating: 5,
+        text: 'Their service department is top notch. I brought my CFMoto in for a weird electrical issue and they diagnosed it in under an hour. Reasonable labor rates too. Will definitely be back.',
+        source: 'Google',
+      },
+      {
+        dealerId: sarasota.id,
+        reviewerName: 'Carlos M.',
+        rating: 4,
+        text: 'Great selection of new and used inventory. The online photos matched exactly what was on the lot. Sales team was knowledgeable and helped me pick the right UTV for my property.',
+        source: 'Facebook',
+      },
+      {
+        dealerId: sarasota.id,
+        reviewerName: 'Donna K.',
+        rating: 5,
+        text: 'We\'ve purchased three boats from Sarasota Powersports over the years. They always go above and beyond with the rigging and delivery. Wouldn\'t go anywhere else in the Sarasota area.',
+        source: 'Google',
+      },
+      {
+        dealerId: sarasota.id,
+        reviewerName: 'Brian W.',
+        rating: 4,
+        text: 'Financing was easy and they beat the rate my credit union offered. The parts department also had the cover I needed in stock, which saved me from ordering online and waiting a week.',
+        source: 'Facebook',
+      },
+    ]
+
+    await db.insert(testimonials).values(fakeTestimonials)
+    console.log(`\nSeeded 5 testimonials for Sarasota Powersports`)
   }
 
   console.log('\nSeed complete!')

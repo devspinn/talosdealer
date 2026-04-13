@@ -8,6 +8,8 @@ import unitRoutes from './routes/units'
 import authRoutes from './routes/auth'
 import dashboardRoutes from './routes/dashboard'
 import leadRoutes from './routes/leads'
+import newsletterRoutes from './routes/newsletter'
+import testimonialRoutes from './routes/testimonials'
 
 export type Env = {
   DATABASE_URL: string
@@ -70,6 +72,8 @@ export function createApp(getEnv?: () => Env) {
   app.route('/api/dealers', dealerRoutes)
   app.route('/api/dealers', unitRoutes)
   app.route('/api/dealers', leadRoutes)
+  app.route('/api/dealers', newsletterRoutes)
+  app.route('/api/dealers', testimonialRoutes)
 
   app.get('/', (c) => c.json({ name: 'RoostDealer API', version: '0.1.0' }))
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   Sparkles,
@@ -6,12 +6,18 @@ import {
   ArrowLeftRight,
   Send,
   CheckCircle,
+  Share2,
+  Link as LinkIcon,
+  Mail,
+  MessageSquare,
 } from 'lucide-react'
 import { cn, formatPrice, formatCondition } from '@/lib/utils'
 import { useDealerPath } from '@/DealerContext'
 import { submitLead } from '@/lib/api'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import Lightbox from '@/components/Lightbox'
+import UnitCard from '@/components/UnitCard'
+import { useRecentlyViewed } from '@/hooks/use-recently-viewed'
 import type { Unit, DealerInfo } from '@/types'
 
 interface UnitDetailProps {
@@ -34,6 +40,13 @@ export default function UnitDetail({ units, dealer }: UnitDetailProps) {
   const [inquirySubmitting, setInquirySubmitting] = useState(false)
   const [inquirySubmitted, setInquirySubmitted] = useState(false)
   const [inquiryError, setInquiryError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const { recentIds } = useRecentlyViewed(dealer.slug, id)
+  const recentUnits = useMemo(
+    () => recentIds.map(rid => units.find(u => u.id === rid)).filter(Boolean) as Unit[],
+    [recentIds, units],
+  )
 
   if (!unit) {
     return (
@@ -142,6 +155,57 @@ export default function UnitDetail({ units, dealer }: UnitDetailProps) {
             <p className="text-3xl font-bold text-primary mt-4">
               {formatPrice(unit.price)}
             </p>
+
+            {/* Share Buttons */}
+            <div className="flex flex-wrap items-center gap-2 mt-4">
+              {'share' in navigator && (
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.share({ title: `Check out this ${title}`, url: window.location.href })
+                    } catch { /* user cancelled */ }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors"
+                >
+                  <Share2 className="h-4 w-4" /> Share
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors"
+              >
+                {copied ? (
+                  <><CheckCircle className="h-4 w-4 text-green-500" /> Copied!</>
+                ) : (
+                  <><LinkIcon className="h-4 w-4" /> Copy Link</>
+                )}
+              </button>
+              <a
+                href={`mailto:?subject=${encodeURIComponent(`Check out this ${title}`)}&body=${encodeURIComponent(window.location.href)}`}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors"
+              >
+                <Mail className="h-4 w-4" /> Email
+              </a>
+              <a
+                href={`sms:?body=${encodeURIComponent(`Check out this ${title} ${window.location.href}`)}`}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors"
+              >
+                <MessageSquare className="h-4 w-4" /> Text
+              </a>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-medium transition-colors"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Facebook
+              </a>
+            </div>
 
             {/* Divider */}
             <hr className="my-6 border-gray-200" />
@@ -382,6 +446,18 @@ export default function UnitDetail({ units, dealer }: UnitDetailProps) {
             )}
           </div>
         </div>
+
+        {/* Recently Viewed */}
+        {recentUnits.length > 0 && (
+          <div className="mt-12 mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recently Viewed</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {recentUnits.map(u => (
+                <UnitCard key={u.id} unit={u} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {lightboxOpen && (
