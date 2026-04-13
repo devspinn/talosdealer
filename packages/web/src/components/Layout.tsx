@@ -135,41 +135,6 @@ export default function Layout({ dealer, unitTypes = [], children }: LayoutProps
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top utility bar */}
-      <div className="bg-gray-900 text-gray-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-9 text-xs">
-          <div className="flex items-center gap-4">
-            {dealer.address && (
-              <Link
-                to={dp('/contact')}
-                className="hidden sm:flex items-center gap-1.5 hover:text-white transition-colors"
-              >
-                <MapPin className="h-3 w-3" />
-                {dealer.city && dealer.state
-                  ? `${dealer.city}, ${dealer.state}`
-                  : dealer.address}
-              </Link>
-            )}
-            <Link
-              to={dp('/contact')}
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
-            >
-              <Clock className="h-3 w-3" />
-              Map &amp; Hours
-            </Link>
-          </div>
-          {dealer.phone && (
-            <a
-              href={`tel:${dealer.phone}`}
-              className="flex items-center gap-1.5 font-bold text-white hover:text-accent transition-colors"
-            >
-              <Phone className="h-3 w-3" />
-              {dealer.phone}
-            </a>
-          )}
-        </div>
-      </div>
-
       {/* Header */}
       <header className="sticky top-0 z-50 bg-primary shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -45,19 +45,16 @@ const TYPE_FLICKR_KEYWORDS: Record<UnitType, string> = {
 
 const vibeContent = {
   marine: {
-    heroHighlight: "Adventure On The Water",
     heroSub: (name: string, city?: string) =>
       `${name} is ${city ? `${city}'s` : "your"} premier marine dealer. Explore our curated selection of boats, personal watercraft, and accessories.`,
     ctaTitle: "Ready to Find Your Perfect Boat?",
   },
   powersports: {
-    heroHighlight: "Any Terrain",
     heroSub: (name: string, city?: string) =>
       `${name} is ${city ? `${city}'s` : "your"} destination for powersports. Browse our lineup of UTVs, ATVs, motorcycles, and more.`,
     ctaTitle: "Ready to Find Your Next Ride?",
   },
   mixed: {
-    heroHighlight: "Adventure",
     heroSub: (name: string, city?: string) =>
       `${name} is ${city ? `${city}'s` : "your"} one-stop shop for marine and powersports.`,
     ctaTitle: "Ready to Find Your Next Machine?",
@@ -71,7 +68,7 @@ export default function Home({ dealer, units }: HomeProps) {
   const content = vibeContent[vibe];
 
   // Hero background: use dealer heroImage, or first unit photo
-  const heroImage = dealer.heroImage || units[0]?.photos[0] || undefined;
+  const heroImage = dealer.heroImage || 'hero.jpg';
 
   // Categories: group by type, get count + image for each
   const categories = useMemo(() => {
@@ -146,171 +143,123 @@ export default function Home({ dealer, units }: HomeProps) {
 
   return (
     <div>
-      {/* Hero Section */}
-      {slides && slideCount > 0 ? (
+      {/* Hero Section — always the same */}
+      <section className="relative min-h-120 sm:min-h-135 lg:min-h-150 flex items-center overflow-hidden">
+        {heroImage && (
+          <img
+            src={heroImage}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/60 to-black/30" />
+        {!heroImage && <div className="absolute inset-0 bg-primary" />}
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 w-full">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-accent font-medium text-sm uppercase tracking-wider">
+              {dealer.city && dealer.state
+                ? `${dealer.city}, ${dealer.state}`
+                : dealer.name}
+            </span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight drop-shadow-lg">
+            {dealer.heroTitle || (
+              <>
+                Your Adventure Starts Here
+              </>
+            )}
+          </h1>
+          <p className="mt-5 text-lg sm:text-xl text-white/80 max-w-xl leading-relaxed">
+            {dealer.heroSubtitle ||
+              content.heroSub(dealer.name, dealer.city)}
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <Link
+              to={dp("/inventory")}
+              className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg"
+            >
+              Browse Inventory
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link
+              to={dp("/contact")}
+              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors backdrop-blur-sm border border-white/20"
+            >
+              Contact Us
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Promotional Carousel — full-bleed images, no overlay */}
+      {slides && slideCount > 0 && (
         <section
-          className="relative min-h-[480px] sm:min-h-[540px] lg:min-h-[600px] flex items-center overflow-hidden"
+          className="relative overflow-hidden bg-black"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          {/* Slides — stacked, opacity crossfade */}
-          {slides.map((slide, i) => (
-            <div
-              key={i}
-              className={`absolute inset-0 transition-opacity duration-700 ${
-                i === activeSlide ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {slide.video ? (
-                <video
-                  src={slide.video}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  poster={slide.image}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <img
-                  src={slide.image}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              )}
-            </div>
-          ))}
-
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
-
-          {/* Slide content */}
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 w-full">
-            <div className="max-w-2xl">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight drop-shadow-lg">
-                {slides[activeSlide].title}
-              </h1>
-              <p className="mt-5 text-lg sm:text-xl text-white/80 max-w-xl leading-relaxed">
-                {slides[activeSlide].subtitle}
-              </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                {slides[activeSlide].ctaText && slides[activeSlide].ctaLink ? (
-                  <Link
-                    to={slides[activeSlide].ctaLink!}
-                    className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg"
-                  >
-                    {slides[activeSlide].ctaText}
-                    <ArrowRight className="h-5 w-5" />
+          <div className="relative aspect-2000/530">
+            {slides.map((slide, i) => (
+              <div
+                key={i}
+                className={`absolute inset-0 transition-opacity duration-700 ${
+                  i === activeSlide ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {slide.ctaLink ? (
+                  <Link to={slide.ctaLink} className="block w-full h-full">
+                    <img
+                      src={slide.image}
+                      alt={slide.title}
+                      className="w-full h-full object-cover"
+                    />
                   </Link>
                 ) : (
-                  <Link
-                    to={dp("/inventory")}
-                    className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg"
-                  >
-                    Browse Inventory
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className="w-full h-full object-cover"
+                  />
                 )}
-                <Link
-                  to={dp("/contact")}
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors backdrop-blur-sm border border-white/20"
-                >
-                  Contact Us
-                </Link>
               </div>
-            </div>
-          </div>
+            ))}
 
-          {/* Arrow controls */}
-          {slideCount > 1 && (
-            <>
-              <button
-                onClick={() => goToSlide(activeSlide - 1)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </button>
-              <button
-                onClick={() => goToSlide(activeSlide + 1)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </button>
-            </>
-          )}
-
-          {/* Dot indicators */}
-          {slideCount > 1 && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
-              {slides.map((_, i) => (
+            {slideCount > 1 && (
+              <>
                 <button
-                  key={i}
-                  onClick={() => setActiveSlide(i)}
-                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                    i === activeSlide ? "bg-white" : "bg-white/40 hover:bg-white/60"
-                  }`}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      ) : (
-        <section className="relative min-h-[480px] sm:min-h-[540px] lg:min-h-[600px] flex items-center overflow-hidden">
-          {/* Background image */}
-          {heroImage && (
-            <img
-              src={heroImage}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          )}
-          {/* Dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
-          {!heroImage && <div className="absolute inset-0 bg-primary" />}
+                  onClick={() => goToSlide(activeSlide - 1)}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
+                  aria-label="Previous slide"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={() => goToSlide(activeSlide + 1)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-colors"
+                  aria-label="Next slide"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 w-full">
-            <div className="max-w-2xl">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-accent font-medium text-sm uppercase tracking-wider">
-                  {dealer.city && dealer.state
-                    ? `${dealer.city}, ${dealer.state}`
-                    : dealer.name}
-                </span>
+            {slideCount > 1 && (
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveSlide(i)}
+                    className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                      i === activeSlide
+                        ? "bg-white"
+                        : "bg-white/40 hover:bg-white/60"
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight drop-shadow-lg">
-                {dealer.heroTitle || (
-                  <>
-                    Your{" "}
-                    <span className="text-accent">
-                      {content.heroHighlight}
-                    </span>{" "}
-                    Starts Here
-                  </>
-                )}
-              </h1>
-              <p className="mt-5 text-lg sm:text-xl text-white/80 max-w-xl leading-relaxed">
-                {dealer.heroSubtitle ||
-                  content.heroSub(dealer.name, dealer.city)}
-              </p>
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <Link
-                  to={dp("/inventory")}
-                  className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-lg"
-                >
-                  Browse Inventory
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-                <Link
-                  to={dp("/contact")}
-                  className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl text-lg transition-colors backdrop-blur-sm border border-white/20"
-                >
-                  Contact Us
-                </Link>
-              </div>
-            </div>
+            )}
           </div>
         </section>
       )}

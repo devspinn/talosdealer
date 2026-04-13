@@ -37,6 +37,19 @@ export interface RawListing {
   rawHtml: string
 }
 
+export interface HeroSlide {
+  image: string
+  title: string
+  subtitle: string
+  ctaLink?: string
+}
+
+export interface ScrapedTestimonial {
+  reviewerName: string
+  text: string
+  source: string
+}
+
 export interface DealerInfo {
   name: string
   slug: string
@@ -51,6 +64,8 @@ export interface DealerInfo {
   heroImage?: string
   heroTitle?: string
   heroSubtitle?: string
+  heroSlides?: HeroSlide[]
+  testimonials?: ScrapedTestimonial[]
   sourceUrl: string
 }
 

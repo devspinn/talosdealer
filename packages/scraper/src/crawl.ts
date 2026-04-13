@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio'
-import type { DealerInfo, RawListing, ScrapedData } from './types.js'
+import type { DealerInfo, RawListing, ScrapedData, HeroSlide, ScrapedTestimonial } from './types.js'
 import { extractListing } from './extract.js'
 import {
   detectSiteVersion,
@@ -206,6 +206,9 @@ function extractDealerInfo(html: string, sourceUrl: string): DealerInfo {
     origin,
   )
 
+  const heroSlides = extractHeroCarousel($, origin, name)
+  const testimonials = extractTestimonials($)
+
   return {
     name,
     slug,
@@ -217,8 +220,71 @@ function extractDealerInfo(html: string, sourceUrl: string): DealerInfo {
     state: addressInfo.state || undefined,
     zip: addressInfo.zip || undefined,
     heroImage: heroImage || undefined,
+    heroSlides: heroSlides.length > 0 ? heroSlides : undefined,
+    testimonials: testimonials.length > 0 ? testimonials : undefined,
     sourceUrl,
   }
+}
+
+/**
+ * Extract hero carousel slides from DealerSpike homepage.
+ * Slides use background-image on .item divs inside .carousel-slideshow.
+ * Filters out slides whose title is just the generic dealer description.
+ */
+function extractHeroCarousel(
+  $: cheerio.CheerioAPI,
+  origin: string,
+  dealerName: string,
+): HeroSlide[] {
+  const slides: HeroSlide[] = []
+
+  $('.carousel-slideshow .carousel-inner .item').each((_, el) => {
+    const style = $(el).attr('style') || ''
+    const bgMatch = style.match(/background-image:\s*url\(([^)]+)\)/i)
+    if (!bgMatch) return
+
+    const imageUrl = resolveUrl(decodeURIComponent(bgMatch[1].replace(/['"]/g, '')), origin)
+    if (!imageUrl) return
+
+    const anchor = $(el).find('a.ds-slide')
+    const rawTitle = (anchor.attr('title') || '').trim()
+    const href = anchor.attr('href') || undefined
+    const ctaLink = href ? resolveUrl(href, origin) || undefined : undefined
+
+    // Skip slides whose title is just the generic dealer description (contains dealer name + long boilerplate)
+    const isGeneric = rawTitle.length > 120 && rawTitle.toLowerCase().includes(dealerName.toLowerCase())
+    const title = isGeneric ? '' : rawTitle
+
+    slides.push({
+      image: imageUrl,
+      title: title || dealerName,
+      subtitle: '',
+      ctaLink,
+    })
+  })
+
+  return slides
+}
+
+/**
+ * Extract testimonials from DealerSpike homepage testimonial slider.
+ */
+function extractTestimonials($: cheerio.CheerioAPI): ScrapedTestimonial[] {
+  const testimonials: ScrapedTestimonial[] = []
+
+  $('#testimonialSlider .slider__item').each((_, el) => {
+    const text = $(el).find('.testimonial-text').text().trim()
+    const name = $(el).find('.testimonial-name').text().trim()
+    if (!text || !name) return
+
+    testimonials.push({
+      reviewerName: name,
+      text,
+      source: 'DealerSpike',
+    })
+  })
+
+  return testimonials
 }
 
 /** Find the actual dealer logo, skipping platform/template logos. */

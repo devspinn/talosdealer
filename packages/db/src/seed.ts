@@ -116,56 +116,70 @@ async function seed() {
     console.log(`  Done: ${data.units.length} units inserted`)
   }
 
-  // --- Seed testimonials for Sarasota Powersports ---
+  // --- Seed carousel + testimonials for Sarasota Powersports ---
   const [sarasota] = await db
     .select({ id: dealers.id })
     .from(dealers)
     .where(eq(dealers.slug, 'sarasota-powersports'))
 
   if (sarasota) {
-    // Clear existing testimonials to avoid duplicates on re-run
+    // Hero carousel slides (scraped from sarasotapowersports.com)
+    const spsOrigin = 'https://sarasotapowersports.com'
+    const heroSlides = [
+      { image: `${spsOrigin}/images/slideshow/Promotional-Slideshow/slide_Polaris_March2026_WCTBSPS.jpg`, title: 'Sarasota Powersports', subtitle: "Florida's premier powersports dealer" },
+      { image: `${spsOrigin}/images/slideshow/Promotional-Slideshow/slide_CFMoto_March2026_WCTBSPS.png`, title: 'Sarasota Powersports', subtitle: "Florida's premier powersports dealer" },
+      { image: `${spsOrigin}/images/slideshow/Promotional-Slideshow/slide_Suzuki_WCTBSPS.jpg`, title: 'Sarasota Powersports', subtitle: "Florida's premier powersports dealer" },
+      { image: `${spsOrigin}/images/slideshow/Promotional-Slideshow/Yamaha-Sxs-2000x530.jpg`, title: 'Yamaha Special Offers', subtitle: '$500 Customer Cash on select models', ctaText: 'Learn More', ctaLink: '/sarasota-powersports/inventory' },
+      { image: `${spsOrigin}/images/slideshow/Promotional-Slideshow/slide_GasGas_WCTBSPS.jpg`, title: 'Sarasota Powersports', subtitle: "Florida's premier powersports dealer" },
+      { image: `${spsOrigin}/images/slideshow/Promotional-Slideshow/Polaris-2000x530.jpg`, title: 'Polaris Off-Road Sale', subtitle: 'Up to $3,000 off select 2026 vehicles', ctaText: 'Shop Now', ctaLink: '/sarasota-powersports/inventory?make=Polaris' },
+    ]
+
+    await db.update(dealers).set({ heroSlides }).where(eq(dealers.id, sarasota.id))
+    console.log(`\nSeeded ${heroSlides.length} hero slides for Sarasota Powersports`)
+
+    // Real testimonials (scraped from sarasotapowersports.com)
     await db.delete(testimonials).where(eq(testimonials.dealerId, sarasota.id))
 
-    const fakeTestimonials = [
+    const realTestimonials = [
       {
         dealerId: sarasota.id,
-        reviewerName: 'Mike R.',
+        reviewerName: 'Robb LeBoeuf',
         rating: 5,
-        text: 'Bought a 2024 Yamaha WaveRunner from these guys and the whole process was seamless. No pressure sales, fair trade-in value on my old ski, and they had me on the water the same weekend.',
-        source: 'Google',
+        text: 'I recently was starting to look for a new motorcycle. When I went into the showroom I was greeted by a gentleman who offered his services. There was never any pressure or "herding" to any specific motorcycle. Andreas told me about all of the new models and we signed the paperwork. The staff at Sarasota Powersports were top notch, sales was fluid and comfortable, financing was spot on and reasonable.',
+        source: 'DealerSpike',
       },
       {
         dealerId: sarasota.id,
-        reviewerName: 'Jessica T.',
+        reviewerName: 'Mike F',
         rating: 5,
-        text: 'Their service department is top notch. I brought my CFMoto in for a weird electrical issue and they diagnosed it in under an hour. Reasonable labor rates too. Will definitely be back.',
-        source: 'Google',
+        text: 'Love this store. The staff is fantastic, the selection is great and everyone involved with buying my new ride made it an awesome experience. Thanks guys!',
+        source: 'DealerSpike',
       },
       {
         dealerId: sarasota.id,
-        reviewerName: 'Carlos M.',
-        rating: 4,
-        text: 'Great selection of new and used inventory. The online photos matched exactly what was on the lot. Sales team was knowledgeable and helped me pick the right UTV for my property.',
-        source: 'Facebook',
-      },
-      {
-        dealerId: sarasota.id,
-        reviewerName: 'Donna K.',
+        reviewerName: 'Dave Zucker',
         rating: 5,
-        text: 'We\'ve purchased three boats from Sarasota Powersports over the years. They always go above and beyond with the rigging and delivery. Wouldn\'t go anywhere else in the Sarasota area.',
-        source: 'Google',
+        text: 'Last week I purchased a new 2018 Kawasaki from Justin at Sarasota Powersports. The entire experience exceeded my expectations. The bike was prepped and ready to go exactly as promised and the price was extremely fair. This is a great dealership to do business with and I highly recommend them.',
+        source: 'DealerSpike',
       },
       {
         dealerId: sarasota.id,
-        reviewerName: 'Brian W.',
-        rating: 4,
-        text: 'Financing was easy and they beat the rate my credit union offered. The parts department also had the cover I needed in stock, which saved me from ordering online and waiting a week.',
-        source: 'Facebook',
+        reviewerName: 'TJ TheSoulTrain',
+        rating: 5,
+        text: "This staff is absolutely fantastic! I bought my bike out of the crate and didn't know how to ride it in 2016. They delivered it and brought it into my garage. They maintained the bike while it was on the street and when I put it on the track. They have been extremely friendly, helpful and one of the reasons I keep going back.",
+        source: 'DealerSpike',
+      },
+      {
+        dealerId: sarasota.id,
+        reviewerName: 'Justin Semi',
+        rating: 5,
+        text: 'Very welcoming, answered all my questions, gear and tools very fairly priced, every time I go in here I feel very welcomed, these guys are great, love this place.',
+        source: 'DealerSpike',
       },
     ]
 
-    await db.insert(testimonials).values(fakeTestimonials)
-    console.log(`\nSeeded 5 testimonials for Sarasota Powersports`)
+    await db.insert(testimonials).values(realTestimonials)
+    console.log(`Seeded ${realTestimonials.length} testimonials for Sarasota Powersports`)
   }
 
   console.log('\nSeed complete!')
