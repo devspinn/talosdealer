@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Routes, Route, useParams, Navigate } from 'react-router-dom'
+import { useMemo, useEffect } from 'react'
+import { Routes, Route, useParams, Navigate, useLocation } from 'react-router-dom'
 import Layout from '@/components/Layout'
 import DashboardLayout from '@/components/DashboardLayout'
 import Home from '@/pages/Home'
@@ -110,8 +110,16 @@ function DealerSite() {
   )
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 function App() {
   return (
+    <>
+    <ScrollToTop />
     <Routes>
       <Route path="/" element={<Marketing />} />
       <Route path="/demos" element={<DealerDirectory />} />
@@ -129,6 +137,7 @@ function App() {
       </Route>
       <Route path="/:slug/*" element={<DealerSite />} />
     </Routes>
+    </>
   )
 }
 
