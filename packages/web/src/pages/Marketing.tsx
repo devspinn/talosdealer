@@ -408,6 +408,18 @@ export default function Marketing() {
               >
                 {session ? 'Dashboard' : 'Sign In'}
               </Link>
+              <Link
+                to="/terms"
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                Terms
+              </Link>
+              <Link
+                to="/privacy"
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                Privacy
+              </Link>
             </div>
           </div>
         </div>

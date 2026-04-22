@@ -16,6 +16,8 @@ import ForgotPassword from '@/pages/ForgotPassword'
 import ResetPassword from '@/pages/ResetPassword'
 import DealerDirectory from '@/pages/DealerDirectory'
 import Marketing from '@/pages/Marketing'
+import Terms from '@/pages/Terms'
+import Privacy from '@/pages/Privacy'
 import DashboardOverview from '@/pages/dashboard/DashboardOverview'
 import DashboardSettings from '@/pages/dashboard/DashboardSettings'
 import DashboardInventory from '@/pages/dashboard/DashboardInventory'
@@ -127,6 +129,8 @@ function App() {
       <Route path="/signup" element={<Signup />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardOverview />} />
         <Route path="leads" element={<DashboardLeads />} />
