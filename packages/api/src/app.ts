@@ -76,7 +76,7 @@ export function createApp(getEnv?: () => Env) {
   app.route('/api/dealers', newsletterRoutes)
   app.route('/api/dealers', testimonialRoutes)
 
-  app.get('/', (c) => c.json({ name: 'RoostDealer API', version: '0.1.0' }))
+  app.get('/', (c) => c.json({ name: 'Talos API', version: '0.1.0' }))
 
   return app
 }

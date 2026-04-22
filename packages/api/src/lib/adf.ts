@@ -101,8 +101,8 @@ export function buildAdfXml({ lead, dealer, unit }: AdfInput): string {
       </contact>
     </vendor>
     <provider>
-      <name part="full">RoostDealer</name>
-      <url>https://roostdealer.com</url>
+      <name part="full">Talos</name>
+      <url>https://talosdealer.com</url>
     </provider>
   </prospect>
 </adf>`

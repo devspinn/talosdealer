@@ -485,7 +485,7 @@ export default function Layout({ dealer, unitTypes = [], children }: LayoutProps
               className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors"
             >
               <span>Powered by</span>
-              <span className="font-semibold text-accent">RoostDealer</span>
+              <span className="font-semibold text-accent">Talos</span>
             </Link>
           </div>
         </div>

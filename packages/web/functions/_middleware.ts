@@ -9,7 +9,7 @@ function loginPage(error?: string) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RoostDealer</title>
+  <title>Talos</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; }
@@ -25,7 +25,7 @@ function loginPage(error?: string) {
 </head>
 <body>
   <form class="card" method="POST">
-    <h1>RoostDealer</h1>
+    <h1>Talos</h1>
     <p>Enter the password to continue.</p>
     ${error ? `<div class="error">${error}</div>` : ""}
     <input type="password" name="password" placeholder="Password" autofocus required />

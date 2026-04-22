@@ -96,7 +96,7 @@ export default function Marketing() {
   const { data: session } = authClient.useSession()
 
   useMetaTags({
-    title: 'RoostDealer | AI-Powered Dealer Websites for Powersports & Marine',
+    title: 'Talos | AI-Powered Dealer Websites for Powersports & Marine',
     description: 'Modern, AI-powered websites for powersports and marine dealers. Replace your legacy DealerSpike site with a faster, smarter platform.',
     ogType: 'website',
   })
@@ -108,7 +108,7 @@ export default function Marketing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             <span className="text-xl font-bold text-white tracking-tight">
-              RoostDealer
+              Talos
             </span>
 
             {/* Desktop nav */}
@@ -343,7 +343,7 @@ export default function Marketing() {
             Don't Take Our Word For It
           </h2>
           <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            We've rebuilt real dealer websites using RoostDealer. Browse live
+            We've rebuilt real dealer websites using Talos. Browse live
             demos from powersports and marine dealers to see the difference.
           </p>
           <div className="mt-8">
@@ -392,7 +392,7 @@ export default function Marketing() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-gray-500">
               &copy; {new Date().getFullYear()}{' '}
-              <span className="font-semibold text-accent">RoostDealer</span>.
+              <span className="font-semibold text-accent">Talos</span>.
               All rights reserved.
             </p>
             <div className="flex items-center gap-6">

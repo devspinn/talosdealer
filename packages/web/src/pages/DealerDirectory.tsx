@@ -6,8 +6,8 @@ import { useMetaTags } from '@/hooks/use-meta-tags'
 
 export default function DealerDirectory() {
   useMetaTags({
-    title: 'Demo Dealers | RoostDealer',
-    description: 'Browse demo dealer websites powered by RoostDealer. See real inventory from powersports and marine dealers.',
+    title: 'Demo Dealers | Talos',
+    description: 'Browse demo dealer websites powered by Talos. See real inventory from powersports and marine dealers.',
   })
   const { data: session } = authClient.useSession()
   const { data: dealerList, loading, error } = useDealers()
@@ -20,7 +20,7 @@ export default function DealerDirectory() {
           <div className="flex items-center justify-between h-16 sm:h-20">
             <Link to="/" className="flex items-center">
               <span className="text-xl font-bold text-white tracking-tight">
-                RoostDealer
+                Talos
               </span>
               <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-semibold bg-accent/20 text-accent uppercase tracking-wider">
                 Demos
@@ -142,7 +142,7 @@ export default function DealerDirectory() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-xs text-gray-500">
             Powered by{' '}
-            <span className="font-semibold text-accent">RoostDealer</span>
+            <span className="font-semibold text-accent">Talos</span>
           </p>
         </div>
       </footer>

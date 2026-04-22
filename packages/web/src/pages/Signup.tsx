@@ -49,7 +49,7 @@ export default function Signup() {
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <h1 className="text-2xl font-bold text-gray-900 text-center mb-8">
-            Create a <span className="text-primary">RoostDealer</span> account
+            Create a <span className="text-primary">Talos</span> account
           </h1>
 
           <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">

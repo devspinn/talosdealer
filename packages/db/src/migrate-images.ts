@@ -81,7 +81,7 @@ async function downloadImage(url: string): Promise<{ buffer: Buffer; contentType
   const { stdout } = await execFileAsync('curl', [
     '-fsSL',
     '--max-time', '30',
-    '-H', 'User-Agent: RoostDealer/1.0',
+    '-H', 'User-Agent: Talos/1.0',
     '--output', '-',
     url,
   ], { encoding: 'buffer', maxBuffer: 50 * 1024 * 1024 })
@@ -153,7 +153,7 @@ async function main() {
   })
   const db = createDb()
 
-  console.log('\nRoostDealer Image Migration')
+  console.log('\nTalos Image Migration')
   console.log('===========================\n')
 
   // --- Dealers ---

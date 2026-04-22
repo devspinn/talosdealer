@@ -27,7 +27,7 @@ program
       maxListings?: number
     }
 
-    console.log(`\n  RoostDealer Scraper`)
+    console.log(`\n  Talos Scraper`)
     console.log(`  ${'='.repeat(40)}`)
     console.log(`  Target: ${url}`)
     console.log(`  Output: ${output}`)

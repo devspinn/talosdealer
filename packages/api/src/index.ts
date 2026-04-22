@@ -10,5 +10,5 @@ const app = createApp(() => ({
 
 const port = parseInt(process.env.PORT || "3000");
 serve({ fetch: app.fetch, port }, () => {
-  console.log(`RoostDealer API running on http://localhost:${port}`);
+  console.log(`Talos API running on http://localhost:${port}`);
 });

@@ -1,4 +1,4 @@
-# RoostDealer
+# Talos
 
 AI-native website platform for powersports, marine, and outdoor equipment dealerships. Replaces legacy CMS providers (DealerSpike) with instant AI-powered onboarding, better inventory descriptions, and modern design.
 

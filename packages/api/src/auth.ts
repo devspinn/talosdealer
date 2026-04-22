@@ -55,7 +55,7 @@ export function createAuth(env: Env) {
       resetPasswordTokenExpiresIn: 3600,
       sendResetPassword: async ({ user, url }) => {
         await resend.emails.send({
-          from: 'RoostDealer <noreply@roostdealer.com>',
+          from: 'Talos <noreply@talosdealer.com>',
           to: user.email,
           subject: 'Reset your password',
           html: `<p>Hi ${user.name},</p><p>Click the link below to reset your password. This link expires in 1 hour.</p><p><a href="${url}">Reset password</a></p><p>If you didn't request this, you can safely ignore this email.</p>`,

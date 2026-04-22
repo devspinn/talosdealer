@@ -45,7 +45,7 @@ export default function DashboardLayout() {
         <div className="p-6 border-b border-gray-100">
           <Link to="/" className="flex items-center gap-2 text-primary font-bold text-lg">
             <Anchor className="w-6 h-6" />
-            RoostDealer
+            Talos
           </Link>
         </div>
 
