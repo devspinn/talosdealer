@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
 [vars]
-BETTER_AUTH_URL = "https://api.roostdealer.com"
+BETTER_AUTH_URL = "https://api.talosdealer.com"
 
 # Secrets (set via `wrangler secret put`):
 # - DATABASE_URL
@@ -16,12 +16,12 @@ binding = "IMAGES"
 bucket_name = "roostdealer-images"
 
 [[routes]]
-pattern = "api.roostdealer.com/*"
-zone_name = "roostdealer.com"
+pattern = "api.talosdealer.com/*"
+zone_name = "talosdealer.com"
 
 [[routes]]
-pattern = "api.staging.roostdealer.com/*"
-zone_name = "roostdealer.com"
+pattern = "api.staging.talosdealer.com/*"
+zone_name = "talosdealer.com"
 
 [observability]
 enabled = false

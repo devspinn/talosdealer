@@ -50,6 +50,9 @@ export function createApp(getEnv?: () => Env) {
       origin: (origin) => {
         const allowed = [
           'http://localhost:5173',
+          'https://talosdealer.com',
+          'https://www.talosdealer.com',
+          'https://staging.talosdealer.com',
           'https://roostdealer.com',
           'https://www.roostdealer.com',
           'https://staging.roostdealer.com',

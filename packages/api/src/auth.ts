@@ -77,16 +77,19 @@ export function createAuth(env: Env) {
     },
     trustedOrigins: [
       'http://localhost:5173',
+      'https://talosdealer.com',
+      'https://www.talosdealer.com',
+      'https://staging.talosdealer.com',
       'https://roostdealer.com',
       'https://www.roostdealer.com',
       'https://staging.roostdealer.com',
       'https://roostdealer-web.pages.dev',
     ],
     advanced: {
-      // TODO: Re-enable once api.roostdealer.com DNS is configured
+      // TODO: Re-enable once api.talosdealer.com DNS is configured
       // crossSubDomainCookies: {
       //   enabled: true,
-      //   domain: '.roostdealer.com',
+      //   domain: '.talosdealer.com',
       // },
       defaultCookieAttributes: {
         sameSite: 'none',

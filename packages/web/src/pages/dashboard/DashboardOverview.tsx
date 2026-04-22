@@ -35,7 +35,7 @@ export default function DashboardOverview() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{dealer.name}</h1>
           <p className="text-gray-500 text-sm mt-1">
-            roostdealer.com/{dealer.slug}
+            talosdealer.com/{dealer.slug}
           </p>
         </div>
         <a

@@ -85,7 +85,7 @@ export default function CreateDealerForm({ onCreated }: Props) {
           </label>
           <div className="flex items-center gap-0">
             <span className="text-sm text-gray-400 bg-gray-50 border border-r-0 border-gray-300 rounded-l-lg px-3 py-2">
-              roostdealer.com/
+              talosdealer.com/
             </span>
             <input
               id="slug"
