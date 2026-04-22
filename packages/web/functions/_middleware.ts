@@ -50,6 +50,7 @@ function getCookie(request: Request, name: string): string | null {
 
 const NON_DEALER_PREFIXES = new Set([
   '', 'demos', 'login', 'signup', 'forgot-password', 'reset-password', 'dashboard', 'api',
+  'terms', 'privacy',
 ]);
 
 interface DealerOGData {
