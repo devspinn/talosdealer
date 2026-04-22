@@ -188,7 +188,7 @@ export default function Privacy() {
           </p>
           <p className="text-gray-600 leading-relaxed mb-4">
             <span className="font-semibold text-gray-900">Talos</span><br />
-            Email: privacy@roostdealer.com
+            Email: devon@talosdealer.com
           </p>
         </div>
       </main>
