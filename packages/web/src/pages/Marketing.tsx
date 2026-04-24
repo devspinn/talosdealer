@@ -119,12 +119,6 @@ export default function Marketing() {
               >
                 Features
               </a>
-              <Link
-                to="/demos"
-                className="text-sm font-medium text-white/80 hover:text-white transition-colors"
-              >
-                Demos
-              </Link>
               {session ? (
                 <Link
                   to="/dashboard"
@@ -174,13 +168,6 @@ export default function Marketing() {
             >
               Features
             </a>
-            <Link
-              to="/demos"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-sm font-medium text-white/80 hover:text-white"
-            >
-              Demos
-            </Link>
             {session ? (
               <Link
                 to="/dashboard"
@@ -228,17 +215,11 @@ export default function Marketing() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/demos"
+              to="/signup"
               className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold px-8 py-4 rounded-xl text-lg transition-colors"
             >
-              See Demo Sites
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
-              to="/signup"
-              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl text-lg border border-white/20 backdrop-blur-sm transition-colors"
-            >
               Get Started
+              <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
         </div>
@@ -333,31 +314,6 @@ export default function Marketing() {
         </div>
       </section>
 
-      {/* Demo CTA */}
-      <section className="py-16 sm:py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-accent text-sm font-semibold uppercase tracking-wider mb-3">
-            See It In Action
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            Don't Take Our Word For It
-          </h2>
-          <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            We've rebuilt real dealer websites using Talos. Browse live
-            demos from powersports and marine dealers to see the difference.
-          </p>
-          <div className="mt-8">
-            <Link
-              to="/demos"
-              className="inline-flex items-center gap-2 bg-accent hover:bg-accent-light text-primary font-bold px-8 py-4 rounded-xl text-lg transition-colors"
-            >
-              Browse Demo Sites
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className="bg-primary py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -376,12 +332,6 @@ export default function Marketing() {
               Get Started
               <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link
-              to="/demos"
-              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-4 rounded-xl text-lg border border-white/20 transition-colors"
-            >
-              See Demos
-            </Link>
           </div>
         </div>
       </section>
@@ -396,12 +346,6 @@ export default function Marketing() {
               All rights reserved.
             </p>
             <div className="flex items-center gap-6">
-              <Link
-                to="/demos"
-                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-              >
-                Demos
-              </Link>
               <Link
                 to={session ? '/dashboard' : '/login'}
                 className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
