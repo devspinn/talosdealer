@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, jsonb } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, uuid, jsonb, boolean } from 'drizzle-orm/pg-core'
 
 export const dealers = pgTable('dealers', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -24,6 +24,8 @@ export const dealers = pgTable('dealers', {
   partsContent: text('parts_content'),
   heroSlides: jsonb('hero_slides').$type<Array<{ image: string; video?: string; title: string; subtitle: string; ctaText?: string; ctaLink?: string }>>(),
   chatWidgetCode: text('chat_widget_code'),
+  chatEnabled: boolean('chat_enabled').notNull().default(true),
+  chatAgentName: text('chat_agent_name'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 })

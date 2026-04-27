@@ -10,12 +10,16 @@ import dashboardRoutes from './routes/dashboard'
 import leadRoutes from './routes/leads'
 import newsletterRoutes from './routes/newsletter'
 import testimonialRoutes from './routes/testimonials'
+import chatRoutes from './routes/chat'
 
 export type Env = {
   DATABASE_URL: string
   BETTER_AUTH_SECRET: string
   BETTER_AUTH_URL: string
   RESEND_API_KEY: string
+  AWS_BEARER_TOKEN_BEDROCK?: string
+  AWS_REGION?: string
+  ANTHROPIC_SMALL_FAST_MODEL?: string
   IMAGES?: R2Bucket
 }
 
@@ -75,6 +79,7 @@ export function createApp(getEnv?: () => Env) {
   app.route('/api/dealers', leadRoutes)
   app.route('/api/dealers', newsletterRoutes)
   app.route('/api/dealers', testimonialRoutes)
+  app.route('/api/dealers', chatRoutes)
 
   app.get('/', (c) => c.json({ name: 'Talos API', version: '0.1.0' }))
 

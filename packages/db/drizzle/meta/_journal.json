@@ -15,6 +15,13 @@
       "when": 1775954667712,
       "tag": "0001_tearful_marrow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777315567827,
+      "tag": "0002_goofy_tyger_tiger",
+      "breakpoints": true
     }
   ]
 }

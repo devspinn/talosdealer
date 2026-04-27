@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useDealerPath } from '@/DealerContext'
 import { subscribeNewsletter } from '@/lib/api'
+import ChatWidget from '@/components/ChatWidget'
 import type { DealerInfo, UnitType } from '@/types'
 
 interface UnitTypeSummary {
@@ -346,6 +347,9 @@ export default function Layout({ dealer, unitTypes = [], children }: LayoutProps
 
       {/* Main Content */}
       <main className="flex-1">{children}</main>
+
+      {/* AI Sales Concierge — appears on all dealer pages */}
+      <ChatWidget dealer={dealer} />
 
       {/* Newsletter Signup Bar */}
       <section className="bg-accent">

@@ -41,6 +41,8 @@ export interface DealerInfo {
   partsContent?: string
   heroSlides?: Array<{ image: string; video?: string; title: string; subtitle: string; ctaText?: string; ctaLink?: string }>
   chatWidgetCode?: string
+  chatEnabled?: boolean
+  chatAgentName?: string | null
 }
 
 export interface EnrichedData {
