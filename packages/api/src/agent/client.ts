@@ -47,18 +47,30 @@ export type ToolDefinition = {
   input_schema: Record<string, unknown>
 }
 
+export type Usage = {
+  inputTokens?: number
+  outputTokens?: number
+  cacheCreationInputTokens?: number
+  cacheReadInputTokens?: number
+}
+
 export type StreamEvent =
   | { type: 'text_delta'; text: string }
   | { type: 'tool_use_start'; id: string; name: string }
   | { type: 'tool_use_input'; id: string; inputJson: string }
   | { type: 'tool_use_complete'; id: string; name: string; input: Record<string, unknown> }
-  | { type: 'message_stop'; stopReason: string | null; assistantContent: ContentBlock[] }
+  | { type: 'message_stop'; stopReason: string | null; assistantContent: ContentBlock[]; usage: Usage }
   | { type: 'error'; message: string }
 
 export type StreamArgs = {
   client: BedrockRuntimeClient
   model: string
-  systemPrompt: string
+  // The cached block is everything that stays identical across calls for this dealer
+  // (base scaffold + dealer profile + skills). The volatile block is whatever changes
+  // per call (random inventory sample, page context). Splitting them is what makes
+  // prompt caching actually hit.
+  systemCached: string
+  systemVolatile?: string
   messages: ClaudeMessage[]
   tools?: ToolDefinition[]
   maxTokens?: number
@@ -69,16 +81,20 @@ export type StreamArgs = {
  * and a terminal message_stop event with the fully assembled assistant content blocks.
  */
 export async function* streamClaude(args: StreamArgs): AsyncGenerator<StreamEvent> {
+  const systemBlocks: Array<Record<string, unknown>> = [
+    {
+      type: 'text',
+      text: args.systemCached,
+      cache_control: { type: 'ephemeral' },
+    },
+  ]
+  if (args.systemVolatile && args.systemVolatile.trim()) {
+    systemBlocks.push({ type: 'text', text: args.systemVolatile })
+  }
   const bodyObj: Record<string, unknown> = {
     anthropic_version: 'bedrock-2023-05-31',
     max_tokens: args.maxTokens ?? 1024,
-    system: [
-      {
-        type: 'text',
-        text: args.systemPrompt,
-        cache_control: { type: 'ephemeral' },
-      },
-    ],
+    system: systemBlocks,
     messages: args.messages,
   }
   if (args.tools && args.tools.length) {
@@ -105,6 +121,7 @@ export async function* streamClaude(args: StreamArgs): AsyncGenerator<StreamEven
   const textByIndex = new Map<number, string>()
   const toolByIndex = new Map<number, { id: string; name: string; inputJson: string }>()
   let stopReason: string | null = null
+  const usage: Usage = {}
 
   for await (const chunk of res.body) {
     const bytes = chunk.chunk?.bytes
@@ -118,6 +135,17 @@ export async function* streamClaude(args: StreamArgs): AsyncGenerator<StreamEven
     }
 
     switch (evt.type) {
+      case 'message_start': {
+        const u = evt.message?.usage
+        if (u) {
+          if (typeof u.input_tokens === 'number') usage.inputTokens = u.input_tokens
+          if (typeof u.cache_creation_input_tokens === 'number')
+            usage.cacheCreationInputTokens = u.cache_creation_input_tokens
+          if (typeof u.cache_read_input_tokens === 'number')
+            usage.cacheReadInputTokens = u.cache_read_input_tokens
+        }
+        break
+      }
       case 'content_block_start': {
         const i = evt.index as number
         const cb = evt.content_block
@@ -166,6 +194,7 @@ export async function* streamClaude(args: StreamArgs): AsyncGenerator<StreamEven
       }
       case 'message_delta': {
         if (evt.delta?.stop_reason) stopReason = evt.delta.stop_reason
+        if (evt.usage?.output_tokens != null) usage.outputTokens = evt.usage.output_tokens
         break
       }
       case 'message_stop': {
@@ -183,5 +212,5 @@ export async function* streamClaude(args: StreamArgs): AsyncGenerator<StreamEven
 
   // Collapse any gaps (shouldn't happen, but keep the array dense)
   const finalBlocks = blocks.filter(Boolean)
-  yield { type: 'message_stop', stopReason, assistantContent: finalBlocks }
+  yield { type: 'message_stop', stopReason, assistantContent: finalBlocks, usage }
 }

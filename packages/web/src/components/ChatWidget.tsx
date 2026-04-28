@@ -13,6 +13,65 @@ interface ChatWidgetProps {
 
 type ActiveTool = { id: string; name: string; summary?: string; ok?: boolean; done: boolean }
 
+type PageKind = 'home' | 'inventory' | 'unit' | 'financing' | 'contact' | 'service' | 'parts' | 'about' | 'other'
+
+function detectPage(pathname: string, slug: string): PageKind {
+  const tail = pathname.replace(new RegExp(`^/${slug}`), '') || '/'
+  if (tail === '/' || tail === '') return 'home'
+  if (/^\/inventory\/[^/]+/.test(tail)) return 'unit'
+  if (tail.startsWith('/inventory')) return 'inventory'
+  if (tail.startsWith('/financing')) return 'financing'
+  if (tail.startsWith('/contact')) return 'contact'
+  if (tail.startsWith('/service')) return 'service'
+  if (tail.startsWith('/parts')) return 'parts'
+  if (tail.startsWith('/about')) return 'about'
+  return 'other'
+}
+
+function greetingFor(page: PageKind, agentName: string, dealerName: string): string {
+  switch (page) {
+    case 'inventory':
+      return `Looking for something specific? I can narrow the lot down by type, budget, or use case.`
+    case 'unit':
+      return `I see you're checking out this one. Happy to walk through specs, availability, or set up a visit.`
+    case 'financing':
+      return `Financing questions are best answered by our team — but I can help you figure out what to ask.`
+    case 'contact':
+      return `Before you fill out the form, want to tell me what you're after? I can often help right here.`
+    case 'service':
+      return `Service questions are handled by the shop team. I can grab your info and route you over.`
+    case 'parts':
+      return `Looking for a specific part? I can help point you in the right direction.`
+    case 'about':
+    case 'home':
+    case 'other':
+    default:
+      return `I'm ${agentName} at ${dealerName}. I can help you find the right unit, answer questions, or connect you with the team. What are you looking for?`
+  }
+}
+
+function chipsFor(page: PageKind): string[] {
+  switch (page) {
+    case 'inventory':
+      return ['Help me pick', "What's new this month?", 'Narrow by budget']
+    case 'unit':
+      return ['Tell me more about this', 'Is this still available?', 'Schedule a test ride']
+    case 'financing':
+      return ['How does trade-in work?', 'What do I need to get pre-qualified?']
+    case 'contact':
+      return ['What are your hours?', 'Schedule a visit']
+    case 'service':
+      return ['Schedule a service appointment', 'Is this under warranty?']
+    case 'parts':
+      return ['Looking for a specific part', 'Check parts availability']
+    case 'home':
+    case 'about':
+    case 'other':
+    default:
+      return ["What's new in stock?", 'Help me find the right one', 'Schedule a visit']
+  }
+}
+
 function storageKey(slug: string) {
   return `talos:chat:${slug}`
 }
@@ -153,6 +212,7 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
     () => ({ path: location.pathname, unitId: params.id }),
     [location.pathname, params.id],
   )
+  const pageKind = useMemo(() => detectPage(location.pathname, dealer.slug), [location.pathname, dealer.slug])
 
   useEffect(() => {
     setMessages(loadMessages(dealer.slug))
@@ -182,7 +242,11 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
 
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault()
-    const text = draft.trim()
+    await sendMessage(draft)
+  }
+
+  async function sendMessage(rawText: string) {
+    const text = rawText.trim()
     if (!text || loading) return
 
     const next: ChatMessage[] = [...messages, { role: 'user', content: text }]
@@ -257,8 +321,12 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
         <button
           type="button"
           onClick={() => setOpen(true)}
+          style={{
+            bottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+            right: 'max(1.5rem, env(safe-area-inset-right))',
+          }}
           className={cn(
-            'fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full bg-primary px-5 py-3',
+            'fixed z-40 flex items-center gap-2 rounded-full bg-primary px-5 py-3 cursor-pointer',
             'text-white font-semibold shadow-lg hover:bg-primary-light transition-colors',
           )}
           aria-label="Open chat"
@@ -272,12 +340,17 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
       {open && (
         <div
           className={cn(
-            'fixed z-40 flex flex-col bg-white shadow-2xl',
+            // z-50 puts the open panel above the sticky site header so the widget's own
+            // header isn't covered on mobile (where it's fullscreen).
+            'fixed z-50 flex flex-col bg-white shadow-2xl',
             'inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[600px] sm:rounded-2xl sm:border sm:border-gray-200',
           )}
         >
           {/* Header */}
-          <div className="flex items-center justify-between gap-2 bg-primary text-white px-4 py-3 sm:rounded-t-2xl">
+          <div
+            style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
+            className="flex items-center justify-between gap-2 bg-primary text-white px-4 pb-3 sm:rounded-t-2xl"
+          >
             <div className="flex items-center gap-2 min-w-0">
               {dealer.logo ? (
                 <img src={dealer.logo} alt="" className="h-8 w-8 rounded-full bg-white object-contain" />
@@ -297,7 +370,7 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
                   type="button"
                   onClick={handleClear}
                   disabled={loading}
-                  className="text-xs text-white/80 hover:text-white px-2 py-1 rounded disabled:opacity-50"
+                  className="text-xs text-white/80 hover:text-white px-2 py-1 rounded cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Clear
                 </button>
@@ -305,7 +378,7 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="p-1 hover:bg-white/10 rounded"
+                className="p-1 hover:bg-white/10 rounded cursor-pointer"
                 aria-label="Close chat"
               >
                 <X className="h-5 w-5" />
@@ -316,13 +389,27 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
             {messages.length === 0 && !loading && (
-              <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-3">
-                <p className="font-medium text-gray-900 mb-1">Hey, I'm {agentName}.</p>
-                <p>
-                  I can help you find the right unit, answer questions about {dealer.name}, or get
-                  you set up with our team. What are you looking for?
-                </p>
-              </div>
+              <>
+                <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-3">
+                  <p className="font-medium text-gray-900 mb-1">Hey, I'm {agentName}.</p>
+                  <p>{greetingFor(pageKind, agentName, dealer.name)}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {chipsFor(pageKind).map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => sendMessage(chip)}
+                      className={cn(
+                        'text-xs px-3 py-1.5 rounded-full border border-gray-300 bg-white cursor-pointer',
+                        'text-gray-700 hover:border-primary hover:text-primary transition-colors',
+                      )}
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
 
             {messages.map((m, i) => (
@@ -393,7 +480,8 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
           {/* Input */}
           <form
             onSubmit={handleSend}
-            className="border-t border-gray-200 bg-white px-3 py-3 flex items-end gap-2 sm:rounded-b-2xl"
+            style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+            className="border-t border-gray-200 bg-white px-3 pt-3 flex items-end gap-2 sm:rounded-b-2xl"
           >
             <textarea
               value={draft}
@@ -417,7 +505,9 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
               type="submit"
               disabled={loading || !draft.trim()}
               className={cn(
-                'bg-primary text-white p-2 rounded-lg hover:bg-primary-light transition-colors',
+                'bg-primary text-white rounded-lg cursor-pointer hover:bg-primary-light transition-colors',
+                // Match the textarea: 20px line-height + 8px×2 padding + 2px border = 38px.
+                'h-[38px] w-[38px] flex items-center justify-center',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}
               aria-label="Send"

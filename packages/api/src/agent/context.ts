@@ -150,7 +150,7 @@ function formatDealerProfile(dealer: Dealer, vertical: string): string {
   return parts.join('\n')
 }
 
-function formatInventorySummary(summary: InventorySummary): string {
+function formatInventoryStats(summary: InventorySummary): string {
   const parts: string[] = []
   parts.push(`# Inventory summary`)
   parts.push(`- Total units in system: ${summary.total}`)
@@ -168,18 +168,19 @@ function formatInventorySummary(summary: InventorySummary): string {
   if (summary.priceRange.min != null && summary.priceRange.max != null) {
     parts.push(`- Price range: ${formatMoney(summary.priceRange.min)} – ${formatMoney(summary.priceRange.max)}`)
   }
+  return parts.join('\n')
+}
 
-  if (summary.sampleUnits.length) {
-    parts.push('')
-    parts.push(`## Sample of current inventory (random ${summary.sampleUnits.length})`)
-    parts.push(`Use these as concrete examples when answering — these units ARE in stock.`)
-    for (const u of summary.sampleUnits) {
-      const year = u.year ?? '—'
-      const stock = u.stockNumber ? ` [stock ${u.stockNumber}]` : ''
-      parts.push(`- ${year} ${u.make} ${u.model} · ${u.type} · ${u.condition} · ${formatMoney(u.price)}${stock} (id: ${u.id})`)
-    }
+function formatInventorySample(summary: InventorySummary): string {
+  if (!summary.sampleUnits.length) return ''
+  const parts: string[] = []
+  parts.push(`## Sample of current inventory (random ${summary.sampleUnits.length})`)
+  parts.push(`Use these as concrete examples when answering — these units ARE in stock.`)
+  for (const u of summary.sampleUnits) {
+    const year = u.year ?? '—'
+    const stock = u.stockNumber ? ` [stock ${u.stockNumber}]` : ''
+    parts.push(`- ${year} ${u.make} ${u.model} · ${u.type} · ${u.condition} · ${formatMoney(u.price)}${stock} (id: ${u.id})`)
   }
-
   return parts.join('\n')
 }
 
@@ -216,7 +217,21 @@ export type BuildSystemPromptArgs = {
   domain?: SkillDomain
 }
 
-export function buildSystemPrompt(args: BuildSystemPromptArgs): string {
+export type SplitSystemPrompt = {
+  /**
+   * Everything stable across calls for this dealer: base scaffold, dealer profile,
+   * inventory stats (counts, makes, price range), skills. This block gets
+   * cache_control so turn 2+ on the same dealer reads from cache.
+   */
+  cached: string
+  /**
+   * Things that change per call: the random inventory sample and page context.
+   * Kept separate so cache hits on the big block.
+   */
+  volatile: string
+}
+
+export function buildSystemPrompt(args: BuildSystemPromptArgs): SplitSystemPrompt {
   const { dealer, inventorySummary, pageContext, agentName } = args
   const domain = args.domain ?? pickDomain(inventorySummary)
   const vertical = domain === 'marine' ? 'marine' : 'powersports'
@@ -227,15 +242,20 @@ export function buildSystemPrompt(args: BuildSystemPromptArgs): string {
     .replace('{city}', dealer.city ?? '')
     .replace('{state}', dealer.state ?? '')
 
-  const sections = [
+  const cached = [
     base,
     formatDealerProfile(dealer, vertical),
-    formatInventorySummary(inventorySummary),
-    formatPageContext(pageContext),
+    formatInventoryStats(inventorySummary),
     formatSkills(domain),
-  ].filter(Boolean)
+  ]
+    .filter(Boolean)
+    .join('\n\n')
 
-  return sections.join('\n\n')
+  const volatile = [formatInventorySample(inventorySummary), formatPageContext(pageContext)]
+    .filter(Boolean)
+    .join('\n\n')
+
+  return { cached, volatile }
 }
 
 export function resolveAgentName(dealer: Dealer, domain: SkillDomain): string {

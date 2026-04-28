@@ -96,7 +96,8 @@ export async function* runAgent(args: RunAgentArgs): AsyncGenerator<AgentEvent> 
       for await (const evt of streamClaude({
         client,
         model,
-        systemPrompt,
+        systemCached: systemPrompt.cached,
+        systemVolatile: systemPrompt.volatile,
         messages,
         tools: toolDefinitionsForClaude(),
         maxTokens: 1024,
@@ -115,6 +116,10 @@ export async function* runAgent(args: RunAgentArgs): AsyncGenerator<AgentEvent> 
         } else if (evt.type === 'message_stop') {
           stopReason = evt.stopReason
           assistantContent = evt.assistantContent
+          const u = evt.usage
+          console.log(
+            `[chat] dealer=${dealer.slug} turn=${turn} in=${u.inputTokens ?? '?'} out=${u.outputTokens ?? '?'} cache_create=${u.cacheCreationInputTokens ?? 0} cache_read=${u.cacheReadInputTokens ?? 0}`,
+          )
         } else if (evt.type === 'error') {
           yield { type: 'error', message: evt.message }
           return
