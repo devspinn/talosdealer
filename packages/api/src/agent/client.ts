@@ -9,13 +9,13 @@ type BedrockAuth = {
 }
 
 export function createBedrockClient(auth: BedrockAuth): BedrockRuntimeClient {
+  // Pass the bearer token explicitly via `token` + force the bearer auth scheme.
+  // The AWS_BEARER_TOKEN_BEDROCK env var fallback only works in Node; on
+  // Cloudflare Workers the SDK has no env access, so we must wire it ourselves.
   return new BedrockRuntimeClient({
     region: auth.region,
-    credentials: {
-      accessKeyId: '',
-      secretAccessKey: '',
-      sessionToken: auth.bearerToken,
-    },
+    token: { token: auth.bearerToken },
+    authSchemePreference: ['httpBearerAuth'],
   })
 }
 
