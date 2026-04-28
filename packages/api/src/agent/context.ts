@@ -92,22 +92,27 @@ export async function fetchInventorySummary(db: Database, dealerId: string): Pro
   }
 }
 
+const MARINE_TYPES: UnitType[] = ['boat', 'pwc', 'trailer']
+const POWERSPORTS_TYPES: UnitType[] = ['motorcycle', 'atv', 'utv', 'snowmobile']
+
 /**
  * Pick domain by dominant inventory type:
  * - boat/pwc/trailer → marine
  * - motorcycle/atv/utv/snowmobile → powersports
  * Ties and 'other'-heavy dealers default to powersports.
  */
-export function pickDomain(summary: InventorySummary): SkillDomain {
-  const marineTypes: UnitType[] = ['boat', 'pwc', 'trailer']
-  const powersportsTypes: UnitType[] = ['motorcycle', 'atv', 'utv', 'snowmobile']
+export function pickDomainFromCounts(byType: Record<string, number>): SkillDomain {
   let marine = 0
   let powersports = 0
-  for (const [t, n] of Object.entries(summary.byType)) {
-    if (marineTypes.includes(t as UnitType)) marine += n
-    if (powersportsTypes.includes(t as UnitType)) powersports += n
+  for (const [t, n] of Object.entries(byType)) {
+    if (MARINE_TYPES.includes(t as UnitType)) marine += n
+    if (POWERSPORTS_TYPES.includes(t as UnitType)) powersports += n
   }
   return marine > powersports ? 'marine' : 'powersports'
+}
+
+export function pickDomain(summary: InventorySummary): SkillDomain {
+  return pickDomainFromCounts(summary.byType)
 }
 
 export function formatMoney(n: number | null | undefined): string {

@@ -43,6 +43,9 @@ export interface DealerInfo {
   chatWidgetCode?: string
   chatEnabled?: boolean
   chatAgentName?: string | null
+  // Server-computed from chatAgentName (if set) or the dealer's dominant inventory vertical.
+  // Populated on GET /api/dealers/:slug. Absent on the list endpoint.
+  agentName?: string
 }
 
 export interface EnrichedData {

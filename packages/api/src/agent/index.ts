@@ -18,7 +18,6 @@ export type AgentEvent =
   | { type: 'text'; delta: string }
   | { type: 'tool_start'; id: string; name: string }
   | { type: 'tool_end'; id: string; name: string; ok: boolean; summary?: string }
-  | { type: 'agent_name'; name: string }
   | { type: 'lead_captured'; leadId: string }
   | { type: 'done' }
   | { type: 'error'; message: string }
@@ -51,8 +50,10 @@ export async function* runAgent(args: RunAgentArgs): AsyncGenerator<AgentEvent> 
 
   const inventorySummary = await fetchInventorySummary(db, dealer.id)
   const domain = pickDomain(inventorySummary)
+  // The widget already got agentName from GET /api/dealers/:slug — no need to
+  // re-emit it over SSE. The server is the single source of truth, both paths
+  // use the same resolveAgentName().
   const agentName = resolveAgentName(dealer, domain)
-  yield { type: 'agent_name', name: agentName }
 
   const systemPrompt = buildSystemPrompt({
     dealer,

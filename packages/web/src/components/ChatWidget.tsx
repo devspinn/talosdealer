@@ -28,12 +28,15 @@ function detectPage(pathname: string, slug: string): PageKind {
   return 'other'
 }
 
-function greetingFor(page: PageKind, agentName: string, dealerName: string): string {
+// Intentionally agent-name-agnostic copy — some dealers will use a title like
+// "Sales Associate" that would read awkwardly in "I'm {name}" phrasing. The pill
+// and header already surface the name; the greeting body doesn't need to repeat it.
+function greetingFor(page: PageKind, _agentName: string, dealerName: string): string {
   switch (page) {
     case 'inventory':
       return `Looking for something specific? I can narrow the lot down by type, budget, or use case.`
     case 'unit':
-      return `I see you're checking out this one. Happy to walk through specs, availability, or set up a visit.`
+      return `Checking this one out? Happy to walk through specs, availability, or set up a visit.`
     case 'financing':
       return `Financing questions are best answered by our team — but I can help you figure out what to ask.`
     case 'contact':
@@ -46,7 +49,7 @@ function greetingFor(page: PageKind, agentName: string, dealerName: string): str
     case 'home':
     case 'other':
     default:
-      return `I'm ${agentName} at ${dealerName}. I can help you find the right unit, answer questions, or connect you with the team. What are you looking for?`
+      return `Welcome to ${dealerName}. I can help you find the right unit, answer questions, or connect you with our team. What are you looking for?`
   }
 }
 
@@ -202,7 +205,9 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
   const [streamingText, setStreamingText] = useState('')
   const [activeTools, setActiveTools] = useState<ActiveTool[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [agentName, setAgentName] = useState<string>(dealer.chatAgentName || 'Sales Assistant')
+  // Server-authoritative: /api/dealers/:slug returns agentName computed from
+  // dealer.chatAgentName ?? (marine-dominant ? 'Marina' : 'Max').
+  const agentName = dealer.agentName ?? 'Sales Assistant'
   const scrollRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const location = useLocation()
@@ -221,10 +226,6 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
   useEffect(() => {
     saveMessages(dealer.slug, messages)
   }, [dealer.slug, messages])
-
-  useEffect(() => {
-    if (dealer.chatAgentName) setAgentName(dealer.chatAgentName)
-  }, [dealer.chatAgentName])
 
   useEffect(() => {
     if (open && scrollRef.current) {
@@ -279,8 +280,6 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
               t.id === evt.id ? { ...t, done: true, ok: evt.ok, summary: evt.summary } : t,
             ),
           )
-        } else if (evt.type === 'agent_name') {
-          setAgentName(evt.name)
         } else if (evt.type === 'lead_captured') {
           // Append a sentinel that RenderedAssistantText turns into a confirmation card.
           // Piggy-backs on the existing message storage so it survives reloads.
@@ -390,9 +389,8 @@ export default function ChatWidget({ dealer }: ChatWidgetProps) {
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
             {messages.length === 0 && !loading && (
               <>
-                <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-3">
-                  <p className="font-medium text-gray-900 mb-1">Hey, I'm {agentName}.</p>
-                  <p>{greetingFor(pageKind, agentName, dealer.name)}</p>
+                <div className="text-sm text-gray-700 bg-white border border-gray-200 rounded-lg px-3 py-3">
+                  {greetingFor(pageKind, agentName, dealer.name)}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {chipsFor(pageKind).map((chip) => (
