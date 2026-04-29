@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio'
 import type { RawListing } from './types.js'
 import type { SiteVersion } from './strategies/types.js'
 import { parseAriUrl } from './strategies/ari.js'
+import { parseBigsplashMetaStrip, parseBigsplashTitle } from './strategies/bigsplash.js'
 
 /**
  * Extract structured listing data from a unit detail page's HTML.
@@ -9,6 +10,10 @@ import { parseAriUrl } from './strategies/ari.js'
  */
 export function extractListing(html: string, url: string, version: SiteVersion = 'classic'): RawListing {
   const $ = cheerio.load(html)
+
+  if (version === 'bigsplash') {
+    return extractBigsplashListing($, html, url)
+  }
 
   // DealerSpike puts structured data in window.utag_data — most reliable source
   const utagData = extractUtagData(html)
@@ -45,6 +50,123 @@ export function extractListing(html: string, url: string, version: SiteVersion =
     description: description ?? undefined,
     rawHtml: html,
   }
+}
+
+/**
+ * Big Splash Interactive detail-page extractor.
+ *
+ * Key fields:
+ * - Title lives in an <h2> just after the meta strip
+ * - Meta strip (pipe-delimited) sits in `span.fs-5.text-success > span.fs-6`
+ * - Price is a `<p><span class="fs-5">$NN,NNN.NN</span></p>`, also mirrored into
+ *   `#inputunitprice[value]` which is a clean numeric string
+ * - Gallery: `.invcarouseldetail1 .carousel-item img` (relative `custimages/inv/...`)
+ * - Description + spec bullets: the `<h3>` matching the title, followed by
+ *   paragraphs and `<strong>`/`<ul>` feature sections
+ */
+function extractBigsplashListing($: cheerio.CheerioAPI, html: string, url: string): RawListing {
+  const metaRaw = $('span.fs-5.text-success span.fs-6').first().text().trim()
+  const meta = metaRaw ? parseBigsplashMetaStrip(metaRaw) : {}
+
+  const title = $('h2.mt-2').first().text().trim() || extractTitle($)
+
+  const priceNumeric = $('#inputunitprice').attr('value') || ''
+  let price: string | undefined
+  if (priceNumeric && !isNaN(Number(priceNumeric))) {
+    const n = Number(priceNumeric)
+    if (n > 0) price = `$${n.toLocaleString('en-US')}`
+  }
+  if (!price) {
+    // Fallback to the visible price span
+    $('span.fs-5').each((_i, el) => {
+      const text = $(el).text().trim()
+      if (!price && /\$[\d,]+/.test(text)) {
+        const m = text.match(/\$[\d,]+(?:\.\d{2})?/)
+        if (m) price = m[0].replace(/\.00$/, '')
+      }
+    })
+  }
+
+  const photos = extractBigsplashPhotos($, url)
+  const description = extractBigsplashDescription($, title)
+
+  const specs: Record<string, string> = {}
+  if (meta.condition) specs['Condition'] = meta.condition
+  if (meta.category) specs['Category'] = meta.category
+  if (meta.brand) specs['Make'] = meta.brand
+  if (meta.stockNumber) specs['Stock Number'] = meta.stockNumber
+  if (meta.vin) specs['VIN'] = meta.vin
+
+  const parsed = parseBigsplashTitle(title, meta.brand)
+  if (parsed.year && !specs['Year']) specs['Year'] = parsed.year
+  if (parsed.make && !specs['Make']) specs['Make'] = parsed.make
+  if (parsed.model && !specs['Model']) specs['Model'] = parsed.model
+
+  return {
+    url,
+    title,
+    price,
+    photos,
+    specs,
+    description: description || undefined,
+    rawHtml: html,
+  }
+}
+
+function extractBigsplashPhotos($: cheerio.CheerioAPI, pageUrl: string): string[] {
+  const seen = new Set<string>()
+  const photos: string[] = []
+
+  // Main gallery on detail pages
+  $('.invcarouseldetail1 .carousel-item img, [id^="invcarousel"] .carousel-item img').each((_i, el) => {
+    const src = $(el).attr('src')
+    if (src) addPhoto(src, pageUrl, seen, photos)
+  })
+
+  // Fallback: any custimages/inv image on the page
+  if (photos.length === 0) {
+    $('img[src*="custimages/inv/"]').each((_i, el) => {
+      const src = $(el).attr('src')
+      if (src) addPhoto(src, pageUrl, seen, photos)
+    })
+  }
+
+  return photos
+}
+
+function extractBigsplashDescription($: cheerio.CheerioAPI, title: string): string {
+  // The description block starts at an <h3> whose text matches the unit title
+  // and continues through <p>, <strong>, and <ul> siblings until the next <h3>
+  // (which is typically "Estimate Payments" or another form heading).
+  const titleNormalized = title.trim().toLowerCase()
+
+  let descRoot: cheerio.Cheerio<any> | null = null
+  $('h3').each((_i, el) => {
+    if (descRoot) return
+    const text = $(el).text().trim().toLowerCase()
+    if (text === titleNormalized) descRoot = $(el)
+  })
+
+  if (!descRoot) return ''
+
+  const parts: string[] = []
+  let node = (descRoot as cheerio.Cheerio<any>).next()
+  while (node.length > 0) {
+    const tagName = (node[0] as { tagName?: string }).tagName?.toLowerCase() ?? ''
+    if (tagName === 'h3') break
+    const text = node.text().trim().replace(/\s+/g, ' ')
+    if (text) {
+      if (tagName === 'strong') {
+        // Feature section heading — include it inline so the structure survives in plain text
+        parts.push(`\n${text}:`)
+      } else {
+        parts.push(text)
+      }
+    }
+    node = node.next()
+  }
+
+  return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 8000)
 }
 
 /**

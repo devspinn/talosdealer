@@ -5,6 +5,7 @@ import {
   detectSiteVersion,
   classicStrategy,
   ariStrategy,
+  bigsplashStrategy,
   type ScrapeStrategy,
   type SiteVersion,
 } from './strategies/index.js'
@@ -12,8 +13,10 @@ import { crawlWooCommerce } from './woocommerce.js'
 import { fetchPage, evaluateInPage, closeBrowser } from './browser.js'
 
 
-function getStrategy(version: 'classic' | 'ari'): ScrapeStrategy {
-  return version === 'ari' ? ariStrategy : classicStrategy
+function getStrategy(version: 'classic' | 'ari' | 'bigsplash'): ScrapeStrategy {
+  if (version === 'ari') return ariStrategy
+  if (version === 'bigsplash') return bigsplashStrategy
+  return classicStrategy
 }
 
 /**
@@ -162,13 +165,21 @@ export function extractDealerInfo(html: string, sourceUrl: string): DealerInfo {
 
   // Name: Try various common locations
   const titleText = $('title').text().trim()
-  const titleFirst = titleText.split(/[|\-–]/)[0]?.trim()
+  const titleParts = titleText.split(/[|\-–]/).map((p) => p.trim()).filter(Boolean)
+  // Prefer the shortest title segment that still looks like a business name — sites
+  // often lead with SEO keyword stuffing and bury the actual name further along.
+  const titleName = titleParts
+    .filter((p) => p.length >= 4 && p.length < 80 && /[A-Za-z]/.test(p))
+    .sort((a, b) => a.length - b.length)[0]
+
+  const ldName = extractLdJsonName($)
 
   const name =
     $('meta[property="og:site_name"]').attr('content')?.trim() ||
     $('.dealer-name, .site-name, .company-name, [class*="dealer-name"]').first().text().trim() ||
+    (ldName && ldName.length < 100 ? ldName : null) ||
     $('header .logo img').attr('alt')?.trim() ||
-    (titleFirst && titleFirst.length < 60 ? titleFirst : null) ||
+    titleName ||
     'Unknown Dealer'
 
   const slug = name
@@ -296,6 +307,29 @@ function findPhone($: cheerio.CheerioAPI): string | null {
   const text = areas.text()
   const phoneMatch = text.match(/\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/)
   return phoneMatch ? phoneMatch[0] : null
+}
+
+/**
+ * Pull the business name out of JSON-LD structured data. Strips a trailing
+ * location suffix like " in Le Claire, IA" that some sites append for SEO.
+ */
+function extractLdJsonName($: cheerio.CheerioAPI): string | null {
+  const scripts = $('script[type="application/ld+json"]')
+  for (let i = 0; i < scripts.length; i++) {
+    try {
+      const data = JSON.parse($(scripts[i]).html() || '{}')
+      const candidates = Array.isArray(data) ? data : [data]
+      for (const entry of candidates) {
+        const rawName = typeof entry?.name === 'string' ? entry.name.trim() : ''
+        if (!rawName) continue
+        // Drop " in <City>, <ST>" suffix the site may have tacked on
+        return rawName.replace(/\s+in\s+[A-Z][\w\s-]+,\s*[A-Z]{2}\b.*$/, '').trim()
+      }
+    } catch {
+      // Invalid JSON, skip
+    }
+  }
+  return null
 }
 
 function extractAddress($: cheerio.CheerioAPI): {

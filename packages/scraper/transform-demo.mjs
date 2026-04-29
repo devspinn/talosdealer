@@ -374,3 +374,40 @@ writeFileSync(
 )
 console.log(`Five Star Marine: ${fivestarUnits.length} units written`)
 console.log('  Categories:', [...new Set(fivestarUnits.map(u => u.specs?.Category).filter(Boolean))].join(', '))
+
+
+// === Grace Marine (Big Splash Interactive) ===
+//
+// The raw scrape comes back with enriched units already shaped like `Unit[]`, so
+// this transform just reskins the dealer metadata (shorter slug, shorter name)
+// and normalizes a few make variants that the enricher wrote inconsistently.
+
+const graceRaw = JSON.parse(readFileSync('output/grace-marine.json', 'utf-8'))
+
+const MAKE_NORMALIZE = {
+  MOOMBA: 'Moomba',
+  SUPRA: 'Supra',
+}
+
+const graceUnits = graceRaw.units.map((u) => ({
+  ...u,
+  make: MAKE_NORMALIZE[u.make] || u.make,
+  price: u.price != null ? Math.round(u.price) : null,
+}))
+
+const graceOutput = {
+  dealer: {
+    ...graceRaw.dealer,
+    name: 'Grace Marine',
+    slug: 'grace-marine',
+  },
+  units: graceUnits,
+}
+
+writeFileSync(
+  new URL('../web/src/data/grace-marine.json', import.meta.url),
+  JSON.stringify(graceOutput, null, 2),
+)
+console.log(`Grace Marine: ${graceUnits.length} units written`)
+console.log('  Types:', [...new Set(graceUnits.map((u) => u.type))].join(', '))
+console.log('  Makes:', [...new Set(graceUnits.map((u) => u.make))].sort().join(', '))

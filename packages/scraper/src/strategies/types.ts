@@ -1,7 +1,7 @@
 import type * as cheerio from 'cheerio'
 
 /** Supported site versions. */
-export type SiteVersion = 'classic' | 'ari' | 'woocommerce'
+export type SiteVersion = 'classic' | 'ari' | 'woocommerce' | 'bigsplash'
 
 /**
  * A version-specific scraping strategy.
