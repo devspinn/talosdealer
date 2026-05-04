@@ -6,12 +6,15 @@ import {
   ArrowRight,
   Clock,
   Search,
-  Palette,
+  Smartphone,
+  PhoneOff,
   Sparkles,
-  Monitor,
+  PenTool,
+  Send,
+  MessageCircle,
   RefreshCw,
   TrendingUp,
-  Plug,
+  Zap,
   Menu,
   X,
 } from 'lucide-react'
@@ -21,63 +24,90 @@ const painPoints = [
     icon: Clock,
     title: '24-Hour Inventory Delays',
     description:
-      'Most platforms batch-sync once a day. A customer sees a unit that sold yesterday.',
+      'Most platforms batch-sync once a day. Customers see units that sold yesterday and walk.',
   },
   {
     icon: Search,
     title: 'Invisible on Google',
     description:
-      'Thin, duplicate descriptions mean search engines ignore your listings.',
+      'Thin, duplicate descriptions mean search engines skip your listings and send buyers to competitors.',
   },
   {
-    icon: Palette,
-    title: 'One-Size-Fits-None Design',
+    icon: Smartphone,
+    title: 'Broken on Mobile',
     description:
-      'Your site looks identical to every other dealer on the same platform.',
+      'Most buyers browse on their phone. Legacy dealer sites weren\'t built for it, and it shows.',
+  },
+  {
+    icon: PhoneOff,
+    title: 'Leads Go Cold Fast',
+    description:
+      'A lead that waits 5 minutes for a reply is 80% less likely to convert. Nights, weekends, holidays — nobody\'s watching.',
+  },
+]
+
+const howItWorks = [
+  {
+    icon: TrendingUp,
+    title: 'Attract',
+    description:
+      'Fast, mobile-first pages with unique AI-written content on every unit. Rank higher, pull in more organic traffic, and give buyers a reason to stay.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Engage',
+    description:
+      'An AI sales concierge answers questions 24/7, grounded in your real inventory. It qualifies intent, captures contact info, and hands warm leads to your team.',
+  },
+  {
+    icon: Send,
+    title: 'Close',
+    description:
+      'Every lead gets intelligent, personalized follow-up until they buy, book, or opt out. No lead forgotten, no night or weekend off.',
   },
 ]
 
 const features = [
   {
     icon: Sparkles,
-    title: 'AI-Powered Descriptions',
+    title: 'AI Sales Concierge',
     description:
-      'Every unit gets a unique, compelling description written by AI. Better descriptions mean better SEO and more engaged buyers.',
+      'A chat agent on every page, grounded in your live inventory. Answers product questions, qualifies buyers, and captures leads around the clock.',
     color: 'accent',
   },
   {
-    icon: Monitor,
-    title: 'Modern, Beautiful Design',
+    icon: Send,
+    title: 'AI Lead Follow-Up',
     description:
-      'Mobile-first, blazing fast, with your brand front and center — not your platform\'s.',
+      'Every lead gets a tailored follow-up sequence until they convert or opt out. No more leads dying in an inbox.',
     color: 'primary',
   },
   {
-    icon: RefreshCw,
-    title: 'Real-Time Inventory Sync',
+    icon: PenTool,
+    title: 'AI-Written Descriptions',
     description:
-      'No more day-old listings. Inventory updates flow through instantly so customers always see what\'s on your lot.',
-    color: 'emerald-500',
-  },
-  {
-    icon: TrendingUp,
-    title: 'SEO That Works',
-    description:
-      'Rich, unique content on every page. Proper schema markup, fast load times, and semantic HTML.',
+      'Every unit gets unique, compelling copy — better for SEO, better for buyers. No more copy-paste listings.',
     color: 'violet-500',
   },
   {
-    icon: Plug,
-    title: 'DMS Integration',
+    icon: RefreshCw,
+    title: 'Real-Time Inventory',
     description:
-      'Connect your existing dealer management system. We pull inventory data directly — no manual entry required.',
+      'Inventory updates the moment your DMS changes. No 24-hour delays, no ghost listings.',
+    color: 'emerald-500',
+  },
+  {
+    icon: Zap,
+    title: 'Lightning Fast & Mobile-First',
+    description:
+      'Pages load in under a second on mobile, where your buyers actually shop. Built on modern infrastructure, not 2010 tech.',
     color: 'blue-500',
   },
   {
-    icon: Palette,
-    title: 'Your Brand, Your Way',
+    icon: TrendingUp,
+    title: 'SEO That Actually Works',
     description:
-      'Custom colors, logos, hero images, and copy. Each dealer site is unique — not a reskinned template.',
+      'Unique content, proper schema, semantic HTML, and speed — everything Google rewards, built in from day one.',
     color: 'pink-500',
   },
 ]
@@ -97,7 +127,7 @@ export default function Marketing() {
 
   useMetaTags({
     title: 'Talos | AI-Powered Dealer Websites for Powersports & Marine',
-    description: 'Modern, AI-powered websites for powersports and marine dealers. Replace your legacy DealerSpike site with a faster, smarter platform.',
+    description: 'AI-powered dealer websites that generate leads and an AI sales agent that closes them. Faster, smarter, and always on — unlike legacy platforms like DealerSpike.',
     ogType: 'website',
   })
 
@@ -205,13 +235,13 @@ export default function Marketing() {
             AI-Powered Dealer Websites
           </p>
           <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
-            Your Dealership Deserves a Website That Actually{' '}
-            <span className="text-accent">Sells</span>
+            Websites That Generate Leads.{' '}
+            <span className="text-accent">AI That Closes Them.</span>
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
-            Beautiful, modern inventory websites for powersports and marine
-            dealers. AI-enhanced descriptions, real-time inventory sync, and SEO
-            that actually works.
+            Talos replaces your legacy dealer site with a fast, modern storefront —
+            and an AI sales agent that qualifies every visitor, answers questions
+            24/7, and follows up with every lead until they buy or opt out.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -234,18 +264,19 @@ export default function Marketing() {
                 The Problem
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
-                Legacy Dealer Websites Are Costing You Customers
+                Your Website Is Losing Deals You'll Never Know About
               </h2>
               <div className="mt-6 space-y-4 text-gray-600 leading-relaxed">
                 <p>
-                  Your website is the first impression most customers get. If it
-                  looks like it was built in 2010, loads slowly, and has thin,
-                  copy-paste descriptions — buyers leave.
+                  Most dealer sites were built a decade ago and haven't evolved.
+                  They load slowly on mobile, batch-sync inventory once a day, and
+                  produce cookie-cutter descriptions search engines ignore.
                 </p>
                 <p>
-                  Most dealer website platforms haven't kept up. They batch-sync
-                  inventory once a day, produce cookie-cutter designs, and
-                  generate zero organic traffic. You deserve better.
+                  Worse, the leads that do come through go into a black hole.
+                  Nobody calls them back fast enough. Nobody follows up a week
+                  later. Your best salesperson is busy, and your website can't
+                  help.
                 </p>
               </div>
             </div>
@@ -272,6 +303,46 @@ export default function Marketing() {
         </div>
       </section>
 
+      {/* How it works */}
+      <section className="py-16 sm:py-24 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 sm:mb-16">
+            <p className="text-accent text-sm font-semibold uppercase tracking-wider mb-3">
+              How It Works
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              Every Visitor, Worked Like It's Your Last Lead
+            </h2>
+            <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+              Talos runs the full funnel — from search impression to signed
+              deal — so no opportunity slips through the cracks.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {howItWorks.map((step, idx) => (
+              <div
+                key={step.title}
+                className="relative bg-gray-50 rounded-2xl p-8"
+              >
+                <div className="absolute top-6 right-6 text-5xl font-extrabold text-gray-200 leading-none select-none">
+                  {idx + 1}
+                </div>
+                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-accent/10 mb-5">
+                  <step.icon className="h-7 w-7 text-accent" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-gray-600 leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section id="features" className="scroll-mt-20 py-16 sm:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -280,11 +351,11 @@ export default function Marketing() {
               Features
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-              Everything Your Dealership Needs
+              Everything a Modern Dealership Needs
             </h2>
             <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-              A modern platform built from scratch for powersports and marine
-              dealers.
+              Built from scratch for powersports and marine dealers who want to
+              win.
             </p>
           </div>
 
@@ -318,11 +389,11 @@ export default function Marketing() {
       <section className="bg-primary py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white">
-            Ready to Replace Your Dealer Website?
+            Stop Losing Deals to a Website That Can't Sell
           </h2>
           <p className="mt-4 text-white/70 text-lg max-w-2xl mx-auto">
-            Join the dealers making the switch to AI-powered, modern websites.
-            Get set up in days, not months.
+            Join the dealers replacing legacy platforms with an AI-powered site
+            that works every lead, every hour. Live in days, not months.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
             <Link
